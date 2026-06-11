@@ -1,0 +1,53 @@
+<mvc:View
+    controllerName="sap.com.interview.controller.Login"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    displayBlock="true">
+
+    <Page id="loginPage" showHeader="false" class="aiqLoginPage" busyIndicatorDelay="0">
+
+        <ScrollContainer height="100%" horizontal="false" vertical="true">
+
+            <FlexBox alignItems="Center" justifyContent="Center" direction="Column" class="aiqLoginLayout">
+
+                <VBox class="aiqLoginHeaderExternal" alignItems="Center">
+                    <Image src="../Images/logo.jpg"  srcDensityAware="false" class="aiqLogoMark" />
+                    <Title text="Kalpavriksha Assess" class="aiqAppTitle sapUiSmallMarginTop"/>
+                    <Text text="Interview Assessment Platform" class="aiqAppSubtitle sapUiTinyMarginTop"/>
+                </VBox>
+
+                <VBox class="aiqLoginCard">
+                    <VBox class="aiqLoginFormSection">
+                        <Title text="Candidate Login" class="aiqFormTitle"/>
+                        <Text text="Enter your details to access your assigned assessment." class="aiqFormSubtitle sapUiSmallMarginBottom"/>
+
+                        <VBox class="sapUiSmallMarginBottom">
+                            <Label text="Student ID" labelFor="inpStudentId" class="sapUiTinyMarginBottom" design="Bold" required="true"/>
+                            <Input id="inpStudentId" placeholder="e.g. STU10294" class="aiqInput" width="100%" liveChange="onStudentIdChange" submit="onStartPressed" value="{session>/studentId}"/>
+                        </VBox>
+
+                        <VBox class="sapUiSmallMarginBottom">
+                            <Label text="Full Name" labelFor="inpName" class="sapUiTinyMarginBottom" design="Bold" required="true"/>
+                            <Input id="inpName" placeholder="e.g. Alex Johnson" value="{session>/candidateName}" class="aiqInput" width="100%" liveChange="onNameChange" submit="onStartPressed"/>
+                        </VBox>
+
+                        <VBox class="sapUiMediumMarginBottom">
+                            <Label text="Email Address" labelFor="inpEmail" class="sapUiTinyMarginBottom" design="Bold" required="true"/>
+                            <Input id="inpEmail" value="{session>/candidateEmail}" placeholder="e.g. alex@company.com" type="Email" class="aiqInput" width="100%" liveChange="onEmailChange" submit="onStartPressed"/>
+                        </VBox>
+
+                        <MessageStrip id="loginError" text="" type="Error" showIcon="true" visible="false" class="sapUiSmallMarginBottom"/>
+
+                        <Button id="btnStart" text="Continue to Assessment →" class="aiqBtnPrimary" width="100%" press="onStartPressed"/>
+                    </VBox>
+                </VBox>
+
+                <!-- <Text text="Secure · Timed · AI-Proctored" class="aiqLoginFooter"/> -->
+
+            </FlexBox>
+
+        </ScrollContainer>
+
+    </Page>
+</mvc:View>

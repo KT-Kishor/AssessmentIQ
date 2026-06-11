@@ -1,0 +1,142 @@
+{
+  "_version": "1.85.0",
+  "sap.app": {
+    "id": "sap.com.interview",
+    "type": "application",
+    "i18n": "i18n/i18n.properties",
+    "applicationVersion": {
+      "version": "0.0.1"
+    },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "resources": "resources.json",
+    "sourceTemplate": {
+      "id": "@sap/generator-fiori:basic",
+      "version": "1.25.0",
+      "toolsId": "ff23fb07-bc49-435e-a84a-e06989b34f0c"
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": {
+      "icon": "",
+      "favIcon": "",
+      "phone": "",
+      "phone@2": "",
+      "tablet": "",
+      "tablet@2": ""
+    },
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "flexEnabled": true,
+    "dependencies": {
+      "minUI5Version": "1.148.1",
+      "libs": {
+        "sap.m": {},
+        "sap.ui.core": {}
+      }
+    },
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "sap.com.interview.i18n.i18n"
+        }
+      }
+    },
+    "resources": {
+      "css": [
+        {
+          "uri": "css/style.css"
+        }
+      ]
+    },
+    "routing": {
+      "config": {
+        "routerClass": "sap.m.routing.Router",
+        "controlAggregation": "pages",
+        "controlId": "app",
+        "transition": "slide",
+        "type": "View",
+        "viewType": "XML",
+        "path": "sap.com.interview.view",
+        "async": true,
+        "viewPath": "sap.com.interview.view"
+      },
+      "routes": [
+        {
+          "name": "login",
+          "pattern": "",
+          "target": [
+            "login"
+          ]
+        },
+        {
+          "name": "start",
+          "pattern": "start",
+          "target": [
+            "start"
+          ]
+        },
+        {
+          "name": "test",
+          "pattern": "test",
+          "target": [
+            "test"
+          ]
+        },
+        {
+          "name": "result",
+          "pattern": "result",
+          "target": [
+            "result"
+          ]
+        },
+        {
+          "name": "review",
+          "pattern": "review",
+          "target": [
+            "review"
+          ]
+        }
+      ],
+      "targets": {
+        "login": {
+          "viewName": "Login",
+          "viewId": "login"
+        },
+        "start": {
+          "viewName": "Start",
+          "viewId": "start"
+        },
+        "test": {
+          "viewName": "Test",
+          "viewId": "test"
+        },
+        "result": {
+          "viewName": "Result",
+          "viewId": "result"
+        },
+        "review": {
+          "viewName": "Review",
+          "viewId": "review"
+        }
+      }
+    },
+    "rootView": {
+      "viewName": "sap.com.interview.view.App",
+      "type": "XML",
+      "id": "App",
+      "async": true
+    }
+  }
+}

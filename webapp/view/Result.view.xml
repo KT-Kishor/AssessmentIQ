@@ -1,0 +1,83 @@
+<mvc:View
+    controllerName="sap.com.interview.controller.Result"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:l="sap.ui.layout"
+    xmlns:core="sap.ui.core"
+    displayBlock="true">
+
+    <Page
+        id="resultPage"
+        showHeader="false"
+        class="aiqResultPage">
+
+        <ScrollContainer height="100%" horizontal="false" vertical="true" class="aiqResultScrollContainer">
+            <FlexBox
+                alignItems="Center"
+                justifyContent="Center"
+                direction="Column"
+                class="aiqResultWrapper">
+
+                <VBox class="aiqResultCard">
+
+                    <VBox class="aiqResultHero" alignItems="Center">
+
+                        <core:HTML id="scoreRingHtml" content="
+                            &lt;div class='aiqScoreRingWrap'&gt;
+                                &lt;svg class='aiqScoreRing' id='aiqScoreRingSvg' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'&gt;
+                                    &lt;circle class='aiqScoreRingTrack' cx='60' cy='60' r='50'/&gt;
+                                    &lt;circle class='aiqScoreRingFill' id='aiqScoreArc' cx='60' cy='60' r='50'
+                                        stroke-dasharray='314'
+                                        stroke-dashoffset='314'/&gt;
+                                &lt;/svg&gt;
+                                &lt;div class='aiqScoreLabel'&gt;
+                                    &lt;span class='aiqScorePct' id='aiqScorePctEl'&gt;—&lt;/span&gt;
+                                    &lt;span class='aiqScoreSublbl'&gt;Score&lt;/span&gt;
+                                    &lt;/div&gt;
+                            &lt;/div&gt;
+                        "/>
+
+                        <Title id="resultVerdict" text="Assessment Complete" class="aiqResultVerdict"/>
+                        <Text id="resultStatus" text="" class="aiqResultNameLine"/>
+                        <Text id="resultNameLine" text="" class="aiqResultNameLine"/>
+                    </VBox>
+
+                    <VBox class="aiqResultBody">
+                        <core:HTML id="resultStatsHtml" content="
+                            &lt;div class='aiqResultStats'&gt;
+                                &lt;div class='aiqStatCard aiqStatScore'&gt;
+                                    &lt;span class='aiqStatCardVal' id='rsScore'&gt;—&lt;/span&gt;
+                                    &lt;span class='aiqStatCardLbl'&gt;Total Score&lt;/span&gt;
+                                &lt;/div&gt;
+                                &lt;div class='aiqStatCard aiqStatTime'&gt;
+                                    &lt;span class='aiqStatCardVal' id='rsTime'&gt;—&lt;/span&gt;
+                                    &lt;span class='aiqStatCardLbl'&gt;Time Taken&lt;/span&gt;
+                                &lt;/div&gt;
+                                &lt;div class='aiqStatCard aiqStatGood'&gt;
+                                    &lt;span class='aiqStatCardVal' id='rsCorrect'&gt;—&lt;/span&gt;
+                                    &lt;span class='aiqStatCardLbl'&gt;Correct Answers&lt;/span&gt;
+                                &lt;/div&gt;
+                                &lt;div class='aiqStatCard aiqStatBad'&gt;
+                                    &lt;span class='aiqStatCardVal' id='rsWrong'&gt;—&lt;/span&gt;
+                                    &lt;span class='aiqStatCardLbl'&gt;Incorrect / Skipped&lt;/span&gt;
+                                &lt;/div&gt;
+                            &lt;/div&gt;
+                        "/>
+                    </VBox>
+
+                    <FlexBox class="aiqResultFooter"
+    justifyContent="Center"
+    alignItems="Center"
+    direction="Row"
+    wrap="NoWrap">
+                        <Button id="btnReview" text="Review Answers" class="aiqBtnOutline" press="onReviewAnswers"/>
+                        <Button id="btnNewTest" text="Start New Test" class="aiqBtnPrimary" press="onNewTest"/>
+                    </FlexBox>
+
+                </VBox>
+
+            </FlexBox>
+        </ScrollContainer>
+
+    </Page>
+</mvc:View>

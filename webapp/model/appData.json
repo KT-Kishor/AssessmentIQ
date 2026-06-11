@@ -1,0 +1,239 @@
+{
+  "assessmentTitle": "Software Engineering Fundamentals",
+  "assessmentSubtitle": "Technical Assessment · Assigned by TechCorp Hiring Team",
+  "totalQuestions": 10,
+  "timeLimit": 15,
+  "totalPoints": 100,
+  "questions": [
+    {
+      "id": 1,
+      "text": "Which of the following best describes the time complexity of binary search on a sorted array of n elements?",
+      "options": [
+        {
+          "key": "A",
+          "text": "O(n)"
+        },
+        {
+          "key": "B",
+          "text": "O(n²)"
+        },
+        {
+          "key": "C",
+          "text": "O(log n)"
+        },
+        {
+          "key": "D",
+          "text": "O(n log n)"
+        }
+      ],
+      "correctAnswer": "C"
+    },
+    {
+      "id": 2,
+      "text": "In object-oriented programming, what principle does encapsulation primarily enforce?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Code reusability through class inheritance"
+        },
+        {
+          "key": "B",
+          "text": "Hiding internal state and exposing only necessary interfaces"
+        },
+        {
+          "key": "C",
+          "text": "Defining multiple methods with the same name"
+        },
+        {
+          "key": "D",
+          "text": "Allowing objects to take on many forms"
+        }
+      ],
+      "correctAnswer": "B"
+    },
+    {
+      "id": 3,
+      "text": "What HTTP status code is returned when a resource is successfully created via a POST request?",
+      "options": [
+        {
+          "key": "A",
+          "text": "200 OK"
+        },
+        {
+          "key": "B",
+          "text": "204 No Content"
+        },
+        {
+          "key": "C",
+          "text": "201 Created"
+        },
+        {
+          "key": "D",
+          "text": "301 Moved Permanently"
+        }
+      ],
+      "correctAnswer": "C"
+    },
+    {
+      "id": 4,
+      "text": "Which data structure operates on the Last-In, First-Out (LIFO) principle?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Queue"
+        },
+        {
+          "key": "B",
+          "text": "Linked List"
+        },
+        {
+          "key": "C",
+          "text": "Heap"
+        },
+        {
+          "key": "D",
+          "text": "Stack"
+        }
+      ],
+      "correctAnswer": "D"
+    },
+    {
+      "id": 5,
+      "text": "In a relational database, which SQL keyword is used to combine rows from two or more tables based on a related column?",
+      "options": [
+        {
+          "key": "A",
+          "text": "UNION"
+        },
+        {
+          "key": "B",
+          "text": "MERGE"
+        },
+        {
+          "key": "C",
+          "text": "JOIN"
+        },
+        {
+          "key": "D",
+          "text": "LINK"
+        }
+      ],
+      "correctAnswer": "C"
+    },
+    {
+      "id": 6,
+      "text": "Which of the following is a characteristic of a pure function in functional programming?",
+      "options": [
+        {
+          "key": "A",
+          "text": "It modifies global state"
+        },
+        {
+          "key": "B",
+          "text": "It always returns the same output for the same input with no side effects"
+        },
+        {
+          "key": "C",
+          "text": "It can only be called once"
+        },
+        {
+          "key": "D",
+          "text": "It requires a class to be defined first"
+        }
+      ],
+      "correctAnswer": "B"
+    },
+    {
+      "id": 7,
+      "text": "What does the acronym REST stand for in the context of web APIs?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Relational Event Service Transfer"
+        },
+        {
+          "key": "B",
+          "text": "Representational State Transfer"
+        },
+        {
+          "key": "C",
+          "text": "Remote Execution and Storage Transfer"
+        },
+        {
+          "key": "D",
+          "text": "Resource Endpoint Security Token"
+        }
+      ],
+      "correctAnswer": "B"
+    },
+    {
+      "id": 8,
+      "text": "In version control with Git, which command creates a new branch and switches to it in a single step?",
+      "options": [
+        {
+          "key": "A",
+          "text": "git branch new-feature"
+        },
+        {
+          "key": "B",
+          "text": "git merge new-feature"
+        },
+        {
+          "key": "C",
+          "text": "git checkout -b new-feature"
+        },
+        {
+          "key": "D",
+          "text": "git clone new-feature"
+        }
+      ],
+      "correctAnswer": "C"
+    },
+    {
+      "id": 9,
+      "text": "Which design pattern defines a one-to-many dependency so that when one object changes state, all dependents are notified?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Singleton"
+        },
+        {
+          "key": "B",
+          "text": "Factory"
+        },
+        {
+          "key": "C",
+          "text": "Observer"
+        },
+        {
+          "key": "D",
+          "text": "Decorator"
+        }
+      ],
+      "correctAnswer": "C"
+    },
+    {
+      "id": 10,
+      "text": "What is the primary purpose of indexing in a database?",
+      "options": [
+        {
+          "key": "A",
+          "text": "To encrypt sensitive data columns"
+        },
+        {
+          "key": "B",
+          "text": "To normalize table relationships"
+        },
+        {
+          "key": "C",
+          "text": "To speed up data retrieval operations"
+        },
+        {
+          "key": "D",
+          "text": "To compress stored data on disk"
+        }
+      ],
+      "correctAnswer": "C"
+    }
+  ]
+}

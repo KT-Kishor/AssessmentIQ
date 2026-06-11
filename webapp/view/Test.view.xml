@@ -1,0 +1,74 @@
+<mvc:View
+    controllerName="sap.com.interview.controller.Test"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    displayBlock="true">
+
+    <Page
+        id="testPage"
+        showHeader="true"
+        class="aiqTestPage">
+
+        <customHeader>
+            <Bar class="aiqTimerHeader">
+                <contentLeft>
+                    <core:HTML content="&lt;div class='aiqHeaderBrand'&gt;&lt;span class='aiqHeaderDot'&gt;&lt;/span&gt; Kalpavriksha Assess&lt;/div&gt;"/>
+                </contentLeft>
+                <contentMiddle>
+                    <Text 
+                        id="timerDisplay" 
+                        text="{session>/formattedTime}" 
+                        class="aiqTimerBox"/>
+                </contentMiddle>
+                <contentRight>
+                    <Text id="headerQInfo" text="Question 1 of 10" class="aiqHeaderQInfo"/>
+                </contentRight>
+            </Bar>
+        </customHeader>
+
+        <ScrollContainer height="100%" horizontal="false" vertical="true" class="aiqTestScrollContainer">
+            <VBox class="aiqTestContent">
+
+                <VBox class="aiqProgressSection sapUiMediumMarginBottom">
+                    <FlexBox justifyContent="SpaceBetween" alignItems="Center" style="margin-bottom:8px;">
+                        <Text id="progressLabel" text="Question 1 of 10" class="aiqProgressLabel"/>
+                        <Text id="progressPct"   text="10% complete"     class="aiqProgressPct"/>
+                    </FlexBox>
+                    <ProgressIndicator
+                        id="progressBar"
+                        percentValue="10"
+                        displayValue=""
+                        showValue="false"
+                        class="aiqProgressBar"
+                        height="7px"
+                        width="100%"/>
+
+                    <core:HTML id="qDotsHtml" content="&lt;div class='aiqQDots' id='aiqQDotsContainer'&gt;&lt;/div&gt;"/>
+                </VBox>
+
+                <VBox class="aiqQCard">
+
+                    <VBox class="aiqQCardContent">
+                        <Text id="qNumber" text="QUESTION 01" class="aiqQNumber"/>
+                        <Text id="qText"   text=""             class="aiqQText" wrapping="true"/>
+
+                <core:HTML id="optionsHtml" preferDOM="false"/>                    
+                </VBox>
+
+                    <FlexBox class="aiqQFooter" justifyContent="SpaceBetween" alignItems="Center">
+                        <Button id="btnPrev" text="← Previous" class="aiqBtnOutline" press="onPrevious" enabled="false"/>
+                        <Text id="unansweredText" text="" class="aiqUnansweredText"/>
+                        <FlexBox class="aiqFooterRight" alignItems="Center">
+                            <Button id="btnNext" text="Next →" class="aiqBtnOutline sapUiTinyMarginEnd" press="onNext"/>
+                            <Button id="btnSubmit" text="Submit Test" class="aiqBtnSubmit" type="Emphasized" press="onSubmitPressed"/>
+                        </FlexBox>
+                    </FlexBox>
+
+                </VBox>
+
+            </VBox>
+        </ScrollContainer>
+
+    </Page>
+</mvc:View>

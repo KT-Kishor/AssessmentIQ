@@ -1,0 +1,97 @@
+<mvc:View
+    controllerName="sap.com.interview.controller.Start"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:l="sap.ui.layout"
+    xmlns:core="sap.ui.core"
+    displayBlock="true">
+
+    <Page
+        id="startPage"
+        showHeader="false"
+        class="aiqStartPage">
+
+        <ScrollContainer height="100%" width="100%" horizontal="false" vertical="true" class="aiqNoHorizontalScroll">
+
+            <FlexBox
+                alignItems="Center"
+                justifyContent="Center"
+                direction="Column"
+                fitContainer="true"
+                class="sapUiSmallMargin">
+
+                <Panel class="aiqStartCard">
+
+                    <core:HTML id="startHero" content="
+                        &lt;div class='aiqStartHero'&gt;
+                            &lt;div class='aiqHeroBadge'&gt;Technical Assessment&lt;/div&gt;
+                            &lt;div class='aiqHeroTitle'&gt;Software Engineering Fundamentals&lt;/div&gt;
+                            &lt;div class='aiqHeroSubtitle'&gt;Assigned by: Kalpavriksha Technologies Team · Scheduled for today&lt;/div&gt;
+                        &lt;/div&gt;
+                    "/>
+
+                    <HBox class="aiqStatsBar" justifyContent="SpaceBetween" width="100%">
+
+                        <VBox class="aiqStatItem" alignItems="Center">
+                            <Text text="{oQuestionStatsModel>/QuestionCount}" class="aiqStatVal"/>
+                            <Text text="Questions" class="aiqStatLbl"/>
+                        </VBox>
+
+                        <VBox class="aiqStatItem" alignItems="Center">
+                            <Text text="{oQuestionStatsModel>/Duration}" class="aiqStatVal"/>
+                            <Text text="Minutes" class="aiqStatLbl"/>
+                        </VBox>
+
+                        <VBox class="aiqStatItem" alignItems="Center">
+                            <Text text="{oQuestionStatsModel>/TotalPoints}" class="aiqStatVal"/>
+                            <Text text="Points" class="aiqStatLbl"/>
+                        </VBox>
+
+                    </HBox>
+
+                    <VBox class="aiqStartBody">
+
+                        <core:HTML content="
+                            &lt;div&gt;
+                                &lt;div class='aiqCheckItem'&gt;
+                                    &lt;div class='aiqCheckIcon'&gt;&lt;svg width='10' height='10' viewBox='0 0 24 24' fill='none'&gt;&lt;path d='M5 13l4 4L19 7' stroke='#16A34A' stroke-width='3' stroke-linecap='round'/&gt;&lt;/svg&gt;&lt;/div&gt;
+                                    Each question has one correct answer — choose wisely
+                                &lt;/div&gt;
+
+                                &lt;div class='aiqCheckItem'&gt;
+                                    &lt;div class='aiqCheckIcon'&gt;&lt;svg width='10' height='10' viewBox='0 0 24 24' fill='none'&gt;&lt;path d='M5 13l4 4L19 7' stroke='#16A34A' stroke-width='3' stroke-linecap='round'/&gt;&lt;/svg&gt;&lt;/div&gt;
+                                    Timer starts immediately when you click Begin Test
+                                &lt;/div&gt;
+
+                                &lt;div class='aiqCheckItem'&gt;
+                                    &lt;div class='aiqCheckIcon'&gt;&lt;svg width='10' height='10' viewBox='0 0 24 24' fill='none'&gt;&lt;path d='M5 13l4 4L19 7' stroke='#16A34A' stroke-width='3' stroke-linecap='round'/&gt;&lt;/svg&gt;&lt;/div&gt;
+                                    You can navigate between questions freely before submitting
+                                &lt;/div&gt;
+
+                                &lt;div class='aiqCheckItem'&gt;
+                                    &lt;div class='aiqCheckIcon'&gt;&lt;svg width='10' height='10' viewBox='0 0 24 24' fill='none'&gt;&lt;path d='M5 13l4 4L19 7' stroke='#16A34A' stroke-width='3' stroke-linecap='round'/&gt;&lt;/svg&gt;&lt;/div&gt;
+                                    Test auto-submits when the timer reaches zero
+                                &lt;/div&gt;
+                            &lt;/div&gt;
+                        "/>
+
+                        <Text id="loggedInText" text="" class="aiqLoggedInText" style="margin-top:0.5rem;"/>
+
+                        <Button
+                            id="btnBegin"
+                            text="▶   Begin Test"
+                            class="aiqBtnPrimary"
+                            width="100%"
+                            press="onBeginTest"
+                            style="margin-top:1rem;"/>
+
+                    </VBox>
+
+                </Panel>
+
+            </FlexBox>
+        </ScrollContainer>
+
+    </Page>
+
+</mvc:View>
