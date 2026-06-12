@@ -18,11 +18,12 @@ sap.ui.define([
             this._oTimer = null;
             this._oSubmitDialog = null;
             this._oTimeoutDialog = null;
+            var oSession = this.getOwnerComponent().getModel("session");
 
             if (!oSession.getProperty("/candidateName")) {
-               return this.getOwnerComponent().getRouter().navTo("login");
+                return this.getOwnerComponent().getRouter().navTo("login");
             }
-            
+
             // Disable right click
             document.addEventListener("contextmenu", function (e) { e.preventDefault() });
 

@@ -16,8 +16,10 @@ sap.ui.define([
             setTimeout(function () {
                 this._renderReviewContent();
             }.bind(this), 0);
+            var oSession = this.getOwnerComponent().getModel("session");
+
             if (!oSession.getProperty("/candidateName")) {
-               return this.getOwnerComponent().getRouter().navTo("login");
+                return this.getOwnerComponent().getRouter().navTo("login");
             }
         },
 
@@ -59,7 +61,7 @@ sap.ui.define([
                 // Start building Card Wrapper
                 sHtml += "<div class='aiqQCard'>";
                 sHtml += "  <div class='aiqQCardContent'>";
-                
+
                 // 1. Badge Header Status (Top-aligned)
                 if (bSkipped) {
                     sHtml += "  <span class='aiqReviewBadge aiqBadgeWarning'>SKIPPED</span>";
@@ -82,10 +84,10 @@ sap.ui.define([
                 oQ.options.forEach(function (oOpt, nOptIndex) {
                     // Generate UI display letters (A, B, C, D...) dynamically from array indices
                     var sOptLetter = String.fromCharCode(65 + nOptIndex);
-                    
+
                     var bIsCandidateChoice = (oOpt.id === nCandidateSelectedOptionId);
                     var bIsThisCorrect = (oOpt.is_correct === 1);
-                    
+
                     var sModifierClass = "";
                     var sRadioCls = "aiqRadioCircle";
 
@@ -101,7 +103,7 @@ sap.ui.define([
                     }
 
                     sHtml += "      <div class='aiqOption" + sModifierClass + "' style='cursor: default;'>";
-                    
+
                     // Custom Simulated Radio Button Node
                     sHtml += "        <div class='" + sRadioCls + "'>";
                     sHtml += "          <div class='aiqRadioDot'></div>";
@@ -109,7 +111,7 @@ sap.ui.define([
 
                     // Letter Badge (A, B, C, D)
                     sHtml += "        <div class='aiqOptLetter'>" + sOptLetter + "</div>";
-                    
+
                     // Answer Content Description Text
                     sHtml += "        <div class='aiqOptText'>" + oOpt.option_text + "</div>";
                     sHtml += "      </div>";
@@ -126,7 +128,7 @@ sap.ui.define([
             var oTargetControl = this.byId("reviewListHtml");
             if (oTargetControl) {
                 oTargetControl.setContent(sHtml);
-                
+
                 // Secondary check: Ensure frame redraws if DOM execution contexts lag
                 if (oTargetControl.getDomRef()) {
                     oTargetControl.invalidate();
