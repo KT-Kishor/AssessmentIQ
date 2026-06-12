@@ -1,0 +1,20 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+    <Dialog id="cameraDialog" title="Candidate Verification" contentWidth="350px">
+        <VBox class="sapUiSmallMargin" alignItems="Center">
+            <HBox class="sapUiTinyMarginTop" justifyContent="Center">
+                <core:HTML content="&lt;video id='video' autoplay class='squareVideo'&gt;&lt;/video&gt;"/>
+            </HBox>
+            <VBox class="sapUiSmallMarginTop" width="100%">
+                <CheckBox id="idConsentCheck"
+                text="I consent to the capture and storage of my photograph for candidate verification during this assessment."
+                wrapping="true" select="onConsentSelect"/>
+            </VBox>
+            <FlexBox class="sapUiMediumMarginTop" justifyContent="SpaceAround" width="100%">
+             <Button text="Capture Photo" type="Accept" press="IC_onCapturePress" width="8rem"/>
+             <Button text="Cancel" type="Reject" press="IC_onPressCloseCameraDialog" width="8rem"/>
+            </FlexBox>
+        </VBox>
+    </Dialog>
+</core:FragmentDefinition>

@@ -1225,3 +1225,55 @@
     -ms-user-select: none !important;
     user-select: none !important;
 }
+
+.squareVideo {
+  width: 100%;
+  max-width: 300px;
+  max-height: 300px;
+  border: 2px solid #000;
+  border-radius: 5px;
+  object-fit: cover;
+}
+
+.barheader,
+.barheader .sapMBar,
+.barheader .sapMBarRight,
+.barheader .sapMBarMiddle,
+.barheader {
+  background: linear-gradient(135deg, #00b7c7, #008b96) !important;
+  color: white !important;
+}
+
+.barheader .sapMText,
+.barheader .sapMLabel,
+.barheader button,
+.barheader .sapMBtnInner,
+.barheader .sapMBtnIcon {
+  color: white !important;
+}
+
+.barheader .sapMBarRight,
+.barheader .sapMBarRight .sapMBtn {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.barheader .sapMBarRight .sapMBtnInner {
+  background: #008b96 !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 6px !important;
+}
+
+.barheader .sapMBarRight .sapMBtnIcon {
+  font-size: 1.2rem !important;
+}
+
+.barheader .sapMBarRight .sapMBtn:hover .sapMBtnInner {
+  background: #007785 !important;
+}
+
+.barheader .sapMBarMiddle .sapMTitle {
+  color: white !important;
+}
