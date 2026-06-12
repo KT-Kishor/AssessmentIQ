@@ -13,7 +13,7 @@
         <customHeader>
             <Bar class="aiqTimerHeader">
                 <contentLeft>
-                    <core:HTML content="&lt;div class='aiqHeaderBrand'&gt;&lt;span class='aiqHeaderDot'&gt;&lt;/span&gt; Kalpavriksha Assess&lt;/div&gt;"/>
+                    <core:HTML content="&lt;div class='aiqHeaderBrand'&gt;&lt;span class='aiqHeaderDot'&gt;&lt;/span&gt; Kalpavriksha AssessIQ&lt;/div&gt;"/>
                 </contentLeft>
                 <contentMiddle>
                     <Text 
@@ -56,14 +56,43 @@
                 <core:HTML id="optionsHtml" preferDOM="false"/>                    
                 </VBox>
 
-                    <FlexBox class="aiqQFooter" justifyContent="SpaceBetween" alignItems="Center">
-                        <Button id="btnPrev" text="← Previous" class="aiqBtnOutline" press="onPrevious" enabled="false"/>
-                        <Text id="unansweredText" text="" class="aiqUnansweredText"/>
-                        <FlexBox class="aiqFooterRight" alignItems="Center">
-                            <Button id="btnNext" text="Next →" class="aiqBtnOutline sapUiTinyMarginEnd" press="onNext"/>
-                            <Button id="btnSubmit" text="Submit Test" class="aiqBtnSubmit" type="Emphasized" press="onSubmitPressed"/>
-                        </FlexBox>
-                    </FlexBox>
+                    <FlexBox
+    class="aiqQFooter"
+    justifyContent="SpaceBetween"
+    alignItems="Center"
+    wrap="Wrap">
+
+    <Button
+        id="btnPrev"
+        text="← Previous"
+        class="aiqBtnOutline"
+        press="onPrevious"
+        enabled="false"/>
+
+    <Text
+        id="unansweredText"
+        text=""
+        class="aiqUnansweredText"/>
+
+    <FlexBox
+        class="aiqFooterRight"
+        alignItems="Center"
+        wrap="Wrap">
+        <Button
+            id="btnNext"
+            text="Next →"
+            class="aiqBtnOutline sapUiTinyMarginEnd"
+            press="onNext"/>
+
+        <Button
+            id="btnSubmit"
+            text="Submit Test"
+            class="aiqBtnSubmit"
+            type="Emphasized"
+            press="onSubmitPressed"/>
+    </FlexBox>
+
+</FlexBox>
 
                 </VBox>
 

@@ -6,8 +6,9 @@ sap.ui.define([
     "sap/m/VBox",
     "sap/ui/core/HTML",
     "sap/ui/model/json/JSONModel",
-    "sap/m/MessageToast"
-], function (BaseController, Dialog, Button, Text, VBox, HTML, JSONModel, MessageToast) {
+    "sap/m/MessageToast",
+    "sap/m/MessageBox"
+], function (BaseController, Dialog, Button, Text, VBox, HTML, JSONModel, MessageToast, MessageBox) {
     "use strict";
 
     return BaseController.extend("sap.com.interview.controller.Test", {
@@ -17,6 +18,34 @@ sap.ui.define([
             this._oTimer = null;
             this._oSubmitDialog = null;
             this._oTimeoutDialog = null;
+
+            // Disable right click
+            document.addEventListener("contextmenu", function (e) { e.preventDefault() });
+
+            // // Disable copy
+            document.addEventListener("copy", function (e) { e.preventDefault() });
+
+            // // Disable cut
+            document.addEventListener("cut", function (e) { e.preventDefault() });
+
+            // // Disable paste
+            document.addEventListener("paste", function (e) { e.preventDefault() });
+
+            // // Disable Ctrl+C, Ctrl+X, Ctrl+V
+            document.addEventListener("keydown", function (e) {
+                if (e.ctrlKey && (e.key === "c" || e.key === "C" || e.key === "x" || e.key === "X" || e.key === "v" || e.key === "V")) {
+                    e.preventDefault();
+                }
+            });
+
+            // this._testSubmitted = false;
+            // this._testDialogOpen = false;
+
+            // document.addEventListener("fullscreenchange",this._onFullscreenChange.bind(this));
+
+            // document.addEventListener("visibilitychange",this._onVisibilityChange.bind(this));
+
+            // window.addEventListener("blur",this._onWindowBlur.bind(this));
 
             var oRouter = this.getOwnerComponent().getRouter();
             oRouter.getRoute("test").attachPatternMatched(this._onRouteMatched, this);
@@ -35,7 +64,7 @@ sap.ui.define([
             var oSession = this.getOwnerComponent().getModel("session");
 
             if (!oSession.getProperty("/candidateName")) {
-                oSession.setProperty("/candidateName", "Guest Candidate");
+                return this.getOwnerComponent().getRouter().navTo("login");
             }
 
             // Reset dialog hooks
@@ -310,13 +339,18 @@ sap.ui.define([
                     type: "Message",
                     state: "Warning",
                     content: [
-                       
+
                         new Text({ id: "submitDialogMsg", text: sMsg, wrapping: true }).addStyleClass("aiqDialogText")
                     ],
                     beginButton: new Button({
                         text: "Yes, Submit Now",
                         type: "Emphasized",
                         press: function () {
+                            this._testSubmitted = true;
+
+                            if (document.fullscreenElement) {
+                                document.exitFullscreen();
+                            }
                             that._oSubmitDialog.close();
 
                             // STEP 1: Stop timer and calculate answers first so they exist in model
@@ -513,6 +547,83 @@ sap.ui.define([
             this.saveCandidateAnswers();
             this.UpdateTestAttempt("timeout");
             this.getOwnerComponent().getRouter().navTo("result");
-        }
+        },
+        _onFullscreenChange: function () {
+
+            if (!document.fullscreenElement &&
+                !this._testSubmitted &&
+                !this._testDialogOpen) {
+
+                this._autoSubmitTest("Fullscreen mode exited.");
+            }
+        },
+
+        _onVisibilityChange: function () {
+
+            if (document.hidden &&
+                !this._testSubmitted &&
+                !this._testDialogOpen) {
+
+                this._autoSubmitTest("Tab switched or window minimized.");
+            }
+        },
+
+        _onWindowBlur: function () {
+
+            if (!this._testSubmitted &&
+                !this._testDialogOpen) {
+
+                this._autoSubmitTest("Window lost focus.");
+            }
+        },
+
+        _autoSubmitTest: function (sMessage) {
+
+            if (this._testDialogOpen) {
+                return;
+            }
+
+            this._testDialogOpen = true;
+
+            MessageBox.show(
+                sMessage + "\n\nDo you want to submit the test?",
+                {
+                    icon: MessageBox.Icon.WARNING,
+                    title: "Warning",
+                    actions: [
+                        MessageBox.Action.YES,
+                        MessageBox.Action.NO
+                    ],
+
+                    onClose: function (oAction) {
+
+                        this._testDialogOpen = false;
+
+                        if (oAction === MessageBox.Action.YES) {
+
+                            this._testSubmitted = true;
+                            this.onSubmitPressed();
+
+                        } else {
+
+                            setTimeout(function () {
+
+                                var elem = document.documentElement;
+
+                                if (elem.requestFullscreen) {
+                                    elem.requestFullscreen();
+                                } else if (elem.webkitRequestFullscreen) {
+                                    elem.webkitRequestFullscreen();
+                                } else if (elem.msRequestFullscreen) {
+                                    elem.msRequestFullscreen();
+                                }
+
+                            }, 300);
+                        }
+
+                    }.bind(this)
+                }
+            );
+        },
     });
 });

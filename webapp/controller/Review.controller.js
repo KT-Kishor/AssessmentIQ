@@ -16,6 +16,9 @@ sap.ui.define([
             setTimeout(function () {
                 this._renderReviewContent();
             }.bind(this), 0);
+            if (!oSession.getProperty("/candidateName")) {
+               return this.getOwnerComponent().getRouter().navTo("login");
+            }
         },
 
         // ── Dynamic HTML Generator Engine ─────────────────────────────

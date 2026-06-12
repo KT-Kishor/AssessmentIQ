@@ -1,23 +1,23 @@
 /* ── CSS Variables ── */
 :root {
-    --aiq-navy:        #0F2B5B;
-    --aiq-blue:        #1E6FD9;
-    --aiq-blue-light:  #3B8FFF;
-    --aiq-blue-pale:   #EBF3FF;
-    --aiq-blue-mid:    #C3DEFF;
-    --aiq-surface:     #F4F8FF;
-    --aiq-border:      #D4E4F7;
+    --aiq-navy: #0F2B5B;
+    --aiq-blue: #1E6FD9;
+    --aiq-blue-light: #3B8FFF;
+    --aiq-blue-pale: #EBF3FF;
+    --aiq-blue-mid: #C3DEFF;
+    --aiq-surface: #F4F8FF;
+    --aiq-border: #D4E4F7;
     --aiq-border-strong: #B0C8E8;
-    --aiq-text:        #0F2B5B;
-    --aiq-text-muted:  #8299B4;
-    --aiq-success:     #16A34A;
-    --aiq-success-bg:  #DCFCE7;
-    --aiq-error:       #DC2626;
-    --aiq-error-bg:    #FEE2E2;
-    --aiq-warning:     #D97706;
-    --aiq-warning-bg:  #FEF3C7;
-    --aiq-radius:      12px;
-    --aiq-radius-sm:   8px;
+    --aiq-text: #0F2B5B;
+    --aiq-text-muted: #8299B4;
+    --aiq-success: #16A34A;
+    --aiq-success-bg: #DCFCE7;
+    --aiq-error: #DC2626;
+    --aiq-error-bg: #FEE2E2;
+    --aiq-warning: #D97706;
+    --aiq-warning-bg: #FEF3C7;
+    --aiq-radius: 12px;
+    --aiq-radius-sm: 8px;
 }
 
 /* ── Body / Page ── */
@@ -90,7 +90,8 @@
 }
 
 .aiqLoginFormSection {
-    padding: 2.5rem !important; /* Generous inside spacing */
+    padding: 2.5rem !important;
+    /* Generous inside spacing */
 }
 
 .aiqFormTitle {
@@ -117,6 +118,7 @@
 .aiqInput {
     height: 46px !important;
 }
+
 .aiqInput .sapMInputBaseInner {
     border-radius: 10px !important;
     border: 1px solid #CBD5E1 !important;
@@ -145,8 +147,10 @@
     height: 48px !important;
     margin-top: 0.5rem;
 }
+
 .aiqBtnPrimary .sapMBtnInner {
-    background: #226FD8 !important; /* Vibrant primary blue */
+    background: #226FD8 !important;
+    /* Vibrant primary blue */
     border-color: #226FD8 !important;
     border-radius: 10px !important;
     color: #ffffff !important;
@@ -185,7 +189,7 @@
     background: #fff !important;
     border: 1px solid var(--aiq-border) !important;
     border-radius: var(--aiq-radius) !important;
-    box-shadow: 0 2px 20px rgba(15,43,91,0.09) !important;
+    box-shadow: 0 2px 20px rgba(15, 43, 91, 0.09) !important;
     max-width: 580px;
     width: 100%;
     overflow: hidden;
@@ -200,16 +204,18 @@
 .aiqStartHero::after {
     content: '';
     position: absolute;
-    top: -60px; right: -60px;
-    width: 200px; height: 200px;
-    background: rgba(255,255,255,0.04);
+    top: -60px;
+    right: -60px;
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.04);
     border-radius: 50%;
     pointer-events: none;
 }
 
 .aiqHeroBadge {
     display: inline-block;
-    background: rgba(255,255,255,0.15);
+    background: rgba(255, 255, 255, 0.15);
     color: #fff;
     font-size: 11px;
     font-weight: 600;
@@ -229,7 +235,7 @@
 
 .aiqHeroSubtitle {
     font-size: 13px !important;
-    color: rgba(255,255,255,0.7) !important;
+    color: rgba(255, 255, 255, 0.7) !important;
 }
 
 /* Stats row */
@@ -244,6 +250,7 @@
     padding: 1.25rem 0.5rem;
     border-right: 1px solid var(--aiq-border);
 }
+
 .aiqStatItem:last-child {
     border-right: none;
 }
@@ -278,6 +285,7 @@
     font-size: 13px;
     color: #4A607A;
 }
+
 .aiqCheckItem:last-child {
     border-bottom: none;
 }
@@ -308,7 +316,8 @@
    ══════════════════════════════════════ */
 /* 1. Header Bar Container Alignment */
 .aiqTimerHeader {
-    background-color: #0F172A !important; /* Dark Slate to match the deep blue style */
+    background-color: #0F172A !important;
+    /* Dark Slate to match the deep blue style */
     border-bottom: 1px solid #1E293B;
     height: 4rem !important;
 }
@@ -327,24 +336,28 @@
     font-size: 1.15rem !important;
     font-weight: 700 !important;
     font-family: 'Courier New', Courier, monospace !important;
-    
+
     /* Elegant Dark Mode Palette Matching Your Mockups */
-    color: #38BDF8 !important; /* Bright Ice Blue text */
-    background-color: #1E293B !important; /* Muted Slate Background */
-    
+    color: #38BDF8 !important;
+    /* Bright Ice Blue text */
+    background-color: #1E293B !important;
+    /* Muted Slate Background */
+
     /* Layout Spacing and Positioning */
     padding: 6px 18px !important;
     border-radius: 6px !important;
     border: 1px solid #334155 !important;
-    
+
     /* Ensures it centers inside flex containers */
-    margin: 0 auto !important; 
+    margin: 0 auto !important;
 }
 
 /* 4. Urgent Warning Style when test time drops below 60 seconds */
 .aiqTimerUrgent {
-    color: #F87171 !important; /* Soft Red Text */
-    background-color: #451A03 !important; /* Deep Dark Amber Background */
+    color: #F87171 !important;
+    /* Soft Red Text */
+    background-color: #451A03 !important;
+    /* Deep Dark Amber Background */
     border: 1px solid #EF4444 !important;
     box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
 }
@@ -364,6 +377,51 @@
     color: #94A3B8 !important;
     font-size: 0.95rem !important;
     font-weight: 500 !important;
+}
+
+/* ========================= */
+/* Responsive Header */
+/* ========================= */
+
+.aiqTimerHeader {
+    min-height: 4rem !important;
+}
+
+@media screen and (max-width: 768px) {
+
+    .aiqHeaderBrand {
+        font-size: 0.9rem !important;
+        max-width: 110px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .aiqTimerBox {
+        font-size: 0.9rem !important;
+        padding: 4px 10px !important;
+    }
+
+    .aiqHeaderQInfo {
+        font-size: 0.8rem !important;
+        white-space: nowrap;
+    }
+}
+
+@media screen and (max-width: 480px) {
+
+    .aiqHeaderBrand {
+        display: none !important;
+    }
+
+    .aiqTimerBox {
+        font-size: 0.85rem !important;
+        padding: 4px 8px !important;
+    }
+
+    .aiqHeaderQInfo {
+        font-size: 0.75rem !important;
+    }
 }
 
 /* ══════════════════════════════════════
@@ -409,12 +467,14 @@
 .aiqProgressBar {
     margin-bottom: 1rem !important;
 }
+
 .aiqProgressBar .sapMPI {
     height: 8px !important;
     border-radius: 20px !important;
     background: #EBF3FF !important;
     border: none !important;
 }
+
 .aiqProgressBar .sapMPIBar {
     border-radius: 20px !important;
     background: #1E6FD9 !important;
@@ -513,7 +573,8 @@
     background: #ffffff !important;
 }
 
-.aiqOption:hover, .aiqOption.aiqOptionSelected {
+.aiqOption:hover,
+.aiqOption.aiqOptionSelected {
     border-color: #1E6FD9 !important;
     background: #F4F8FF !important;
 }
@@ -560,7 +621,8 @@
 }
 
 /* Button Custom Variations overrides */
-.aiqBtnOutline.sapMBtn, .aiqBtnSubmit.sapMBtn {
+.aiqBtnOutline.sapMBtn,
+.aiqBtnSubmit.sapMBtn {
     height: 40px !important;
 }
 
@@ -573,6 +635,7 @@
     font-weight: 600 !important;
     padding: 0 16px !important;
 }
+
 .aiqBtnOutline:hover .sapMBtnInner {
     background: #F8FAFC !important;
     border-color: #94A3B8 !important;
@@ -589,6 +652,7 @@
     padding: 0 18px !important;
     text-shadow: none !important;
 }
+
 .aiqBtnSubmit:hover .sapMBtnInner {
     background: #1556A8 !important;
     border-color: #1556A8 !important;
@@ -600,6 +664,57 @@
     border-color: #E2E8F0 !important;
     color: #94A3B8 !important;
     opacity: 0.7 !important;
+}
+
+/* ============================= */
+/* Responsive Footer */
+/* ============================= */
+
+.aiqFooterRight {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px;
+}
+
+@media screen and (max-width: 768px) {
+
+    .aiqQFooter {
+        padding: 1rem !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+    }
+
+    .aiqFooterRight {
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+
+    .aiqUnansweredText {
+        width: 100%;
+        text-align: center;
+        order: -1;
+    }
+
+    .aiqBtnOutline.sapMBtn,
+    .aiqBtnSubmit.sapMBtn {
+        flex: 1;
+        min-width: 140px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+
+    .aiqFooterRight {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .aiqBtnOutline.sapMBtn,
+    .aiqBtnSubmit.sapMBtn {
+        width: 100% !important;
+    }
 }
 
 /* ══════════════════════════════════════
@@ -636,7 +751,8 @@
 
 /* ── Top Blue Banner Grid Segment ── */
 .aiqResultHero {
-    background: #0F2B5B !important; /* Deep Navy Theme Color matching image */
+    background: #0F2B5B !important;
+    /* Deep Navy Theme Color matching image */
     padding: 2.5rem 1.5rem 2rem 1.5rem !important;
     width: 100% !important;
     box-sizing: border-box !important;
@@ -752,10 +868,24 @@
 }
 
 /* Specific Value Structural Item Colors */
-.aiqStatScore .aiqStatCardVal { color: #0F2B5B !important; }
-.aiqStatTime .aiqStatCardVal  { color: #1E6FD9 !important; }
-.aiqStatGood .aiqStatCardVal  { color: #10B981 !important; } /* Clean Green */
-.aiqStatBad .aiqStatCardVal   { color: #EF4444 !important; } /* Clean Red */
+.aiqStatScore .aiqStatCardVal {
+    color: #0F2B5B !important;
+}
+
+.aiqStatTime .aiqStatCardVal {
+    color: #1E6FD9 !important;
+}
+
+.aiqStatGood .aiqStatCardVal {
+    color: #10B981 !important;
+}
+
+/* Clean Green */
+.aiqStatBad .aiqStatCardVal {
+    color: #EF4444 !important;
+}
+
+/* Clean Red */
 
 /* ── Standardized Action Buttons Row Section ── */
 .aiqResultFooter {
@@ -774,7 +904,8 @@
 /* Keep buttons inline */
 .aiqResultFooter .sapMBtn {
     height: 42px !important;
-    min-width: 160px !important;   /* KEY FIX */
+    min-width: 160px !important;
+    /* KEY FIX */
     margin: 0 6px !important;
 }
 
@@ -857,17 +988,20 @@
 }
 
 .aiqBadgeWarning {
-    background-color: #FEF3C7 !important; /* Soft Yellow */
+    background-color: #FEF3C7 !important;
+    /* Soft Yellow */
     color: #D97706 !important;
 }
 
 .aiqBadgeSuccess {
-    background-color: #D1FAE5 !important; /* Soft Green */
+    background-color: #D1FAE5 !important;
+    /* Soft Green */
     color: #059669 !important;
 }
 
 .aiqBadgeError {
-    background-color: #FEE2E2 !important; /* Soft Red */
+    background-color: #FEE2E2 !important;
+    /* Soft Red */
     color: #DC2626 !important;
 }
 
@@ -911,13 +1045,15 @@
 
 /* Correct Answer Highlights (Green Row State) */
 .aiqOption.aiqOptCorrect {
-    background-color: #E8F5E9 !important; /* Soft Green Background */
+    background-color: #E8F5E9 !important;
+    /* Soft Green Background */
     border-color: #4CAF50 !important;
 }
 
 /* Incorrect Selection Highlights (Red Row State) */
 .aiqOption.aiqOptWrong {
-    background-color: #FFEBEE !important; /* Soft Red Background */
+    background-color: #FFEBEE !important;
+    /* Soft Red Background */
     border-color: #EF4444 !important;
 }
 
@@ -935,8 +1071,13 @@
     box-sizing: border-box !important;
 }
 
-.aiqRadioCircle.aiqRadioCheckedCorrect { border-color: #4CAF50 !important; }
-.aiqRadioCircle.aiqRadioCheckedWrong   { border-color: #EF4444 !important; }
+.aiqRadioCircle.aiqRadioCheckedCorrect {
+    border-color: #4CAF50 !important;
+}
+
+.aiqRadioCircle.aiqRadioCheckedWrong {
+    border-color: #EF4444 !important;
+}
 
 .aiqRadioDot {
     width: 10px !important;
@@ -945,8 +1086,13 @@
     border-radius: 50% !important;
 }
 
-.aiqRadioCheckedCorrect .aiqRadioDot { background-color: #4CAF50 !important; }
-.aiqRadioCheckedWrong .aiqRadioDot   { background-color: #EF4444 !important; }
+.aiqRadioCheckedCorrect .aiqRadioDot {
+    background-color: #4CAF50 !important;
+}
+
+.aiqRadioCheckedWrong .aiqRadioDot {
+    background-color: #EF4444 !important;
+}
 
 /* Letter Badges (A, B, C, D) inside rows */
 .aiqOptLetter {
@@ -984,6 +1130,7 @@
     font-weight: 500 !important;
     line-height: 1.4 !important;
 }
+
 /* ══════════════════════════════════════
    DIALOGS
    ══════════════════════════════════════ */
@@ -1008,8 +1155,13 @@
     margin: 0 auto 1rem;
 }
 
-.aiqDialogIconWarn { background: var(--aiq-warning-bg); }
-.aiqDialogIconError { background: var(--aiq-error-bg); }
+.aiqDialogIconWarn {
+    background: var(--aiq-warning-bg);
+}
+
+.aiqDialogIconError {
+    background: var(--aiq-error-bg);
+}
 
 .aiqDialogText {
     font-size: 14px !important;
@@ -1022,13 +1174,54 @@
    RESPONSIVE
    ══════════════════════════════════════ */
 @media (max-width: 600px) {
-    .aiqQCardContent { padding: 1.25rem; }
-    .aiqQFooter { padding: 0.875rem 1rem; }
-    .aiqQText { font-size: 15px !important; }
-    .aiqResultStats { grid-template-columns: 1fr 1fr; gap: 8px; padding: 1rem; }
-    .aiqStartBody { padding: 1.25rem; }
-    .aiqStartHero { padding: 1.5rem; }
-    .aiqQDot { width: 22px; height: 22px; font-size: 10px; }
-    .aiqTimerHeader { padding: 0 1rem !important; }
-    .aiqHeaderQInfo { display: none; }
+    .aiqQCardContent {
+        padding: 1.25rem;
+    }
+
+    .aiqQFooter {
+        padding: 0.875rem 1rem;
+    }
+
+    .aiqQText {
+        font-size: 15px !important;
+    }
+
+    .aiqResultStats {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        padding: 1rem;
+    }
+
+    .aiqStartBody {
+        padding: 1.25rem;
+    }
+
+    .aiqStartHero {
+        padding: 1.5rem;
+    }
+
+    .aiqQDot {
+        width: 22px;
+        height: 22px;
+        font-size: 10px;
+    }
+
+    .aiqTimerHeader {
+        padding: 0 1rem !important;
+    }
+
+    .aiqHeaderQInfo {
+        display: none;
+    }
+}
+
+
+/* Prevent text selection */
+.aiqQText,
+.aiqOptText,
+.aiqOption {
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
 }

@@ -13,7 +13,7 @@
 
                 <VBox class="aiqLoginHeaderExternal" alignItems="Center">
                     <Image src="../Images/logo.jpg"  srcDensityAware="false" class="aiqLogoMark" />
-                    <Title text="Kalpavriksha Assess" class="aiqAppTitle sapUiSmallMarginTop"/>
+                    <Title text="Kalpavriksha AssessIQ" class="aiqAppTitle sapUiSmallMarginTop"/>
                     <Text text="Interview Assessment Platform" class="aiqAppSubtitle sapUiTinyMarginTop"/>
                 </VBox>
 

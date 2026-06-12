@@ -64,6 +64,17 @@ sap.ui.define([
             var oSession = this.getOwnerComponent().getModel("session");
             var oQuestionStatsModel = this.getOwnerComponent().getModel("oQuestionStatsModel");
             // Initialize answers array (null = unanswered)
+
+            // var elem = document.documentElement;
+
+            // if (elem.requestFullscreen) {
+            //     elem.requestFullscreen();
+            // } else if (elem.webkitRequestFullscreen) {
+            //     elem.webkitRequestFullscreen();
+            // } else if (elem.msRequestFullscreen) {
+            //     elem.msRequestFullscreen();
+            // }
+
             var aAnswers = [];
             for (var i = 0; i < 10; i++) { aAnswers.push(null); }
 

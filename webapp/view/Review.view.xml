@@ -13,16 +13,13 @@
         <customHeader>
             <Bar class="aiqTimerHeader">
                 <contentLeft>
-                    <core:HTML content="&lt;div class='aiqHeaderBrand'&gt;&lt;span class='aiqHeaderDot'&gt;&lt;/span&gt; Kalpavriksha Assess&lt;/div&gt;"/>
+                    <core:HTML content="&lt;div class='aiqHeaderBrand'&gt;&lt;span class='aiqHeaderDot'&gt;&lt;/span&gt; Kalpavriksha AssessIQ&lt;/div&gt;"/>
                 </contentLeft>
                 <contentMiddle>
                     <Title text="Review Answers" class="aiqReviewMainTitle"/>
                 </contentMiddle>
                 <contentRight>
-                    <Button
-                        text="← Back to Results"
-                        class="aiqBtnOutline"
-                        press="onBackToResults"/>
+                    <Button text="← Back to Results" class="aiqBtnOutline" press="onBackToResults"/>
                 </contentRight>
             </Bar>
         </customHeader>
