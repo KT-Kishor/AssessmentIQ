@@ -16,8 +16,8 @@ sap.ui.define([
             var oSession = this.getOwnerComponent().getModel("session");
 
             // Guard: Redirect back if test hasn't been submitted yet
-            if (!oSession || !oSession.getProperty("/submitted")) {
-                return this.getOwnerComponent().getRouter().navTo("login");
+            if (!oSession.getProperty("/candidateName")) {
+               return this.getOwnerComponent().getRouter().navTo("login");
             }
 
             this._populateResults();

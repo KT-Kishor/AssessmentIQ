@@ -19,6 +19,10 @@ sap.ui.define([
             this._oSubmitDialog = null;
             this._oTimeoutDialog = null;
 
+            if (!oSession.getProperty("/candidateName")) {
+               return this.getOwnerComponent().getRouter().navTo("login");
+            }
+            
             // Disable right click
             document.addEventListener("contextmenu", function (e) { e.preventDefault() });
 
@@ -85,7 +89,7 @@ sap.ui.define([
                 var aMockQuestions = [
                     {
                         id: 2,
-                        test_id: 1,
+                        test_id: 2,
                         question_text: "Which model type in SAPUI5 is server-side by default?",
                         marks: 2,
                         order_no: 0,
@@ -98,7 +102,7 @@ sap.ui.define([
                     },
                     {
                         id: 3,
-                        test_id: 1,
+                        test_id: 2,
                         question_text: "What does BTP stand for in the SAP Ecosystem?",
                         marks: 1,
                         order_no: 1,
