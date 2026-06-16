@@ -87,7 +87,7 @@ sap.ui.define([
             this.ajaxCreateWithJQuery("Candidate", { data: oData })
                 .then(response => {
                     oPage.setBusy(false);
-                    oSession.setProperty("/candidates_id", response?.data?.results?.insertId);
+                    oSession.setProperty("/candidates_id", response?.candidateId || response?.data?.results?.insertId);
                     this.getOwnerComponent().getRouter().navTo("setup");
                 })
                 .catch((error) => {

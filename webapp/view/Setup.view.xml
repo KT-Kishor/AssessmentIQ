@@ -38,8 +38,8 @@
 									<Title text="Aptitude Test" level="H4" class="homeRoundTitle"/>
 								</VBox>
 								<HBox alignItems="Center" class="homeRoundStatus homeRoundStatus--pending">
-									<core:Icon src="sap-icon://pending" class="homeRoundStatusIcon"/>
-									<Text text="Pending" class="homeRoundStatusText"/>
+									<core:Icon class="homeRoundStatusIcon"/>
+									<Text text="{roundModel>/round1/status}" class="homeRoundStatusText"/>
 								</HBox>
 							</HBox>
 							<VBox class="homeRoundBody">
@@ -66,7 +66,7 @@
 								</HBox>
 							</VBox>
 							<HBox alignItems="Center" justifyContent="Center" class="homeRoundFooter">
-								<Button text="Start Round 1" type="Emphasized" icon="sap-icon://play" press="onStartAptitude" class="homeStartBtn homeStartBtn--aptitude"/>
+								<Button text="{roundModel>/round1/text}" visible="{roundModel>/round1/visible}" enabled="{roundModel>/round1/enabled}" type="Emphasized" icon="sap-icon://play" press="onStartAptitude" class="homeStartBtn homeStartBtn--programming"/>
 							</HBox>
 						</VBox>
 						<!--  Round 2: Programming  -->
@@ -77,11 +77,11 @@
 								</VBox>
 								<VBox class="homeRoundHeaderText">
 									<Text text="Round 2" class="homeRoundLabel"/>
-									<Title text="Programming Round" level="H4" class="homeRoundTitle"/>
+									<Title text="Coding Round" level="H4" class="homeRoundTitle" wrapping="true"/>
 								</VBox>
 								<HBox alignItems="Center" class="homeRoundStatus homeRoundStatus--pending">
-									<core:Icon src="sap-icon://pending" class="homeRoundStatusIcon"/>
-									<Text text="Pending" class="homeRoundStatusText"/>
+									<core:Icon class="homeRoundStatusIcon"/>
+									<Text text="{roundModel>/round2/status}" class="homeRoundStatusText"/>
 								</HBox>
 							</HBox>
 							<VBox class="homeRoundBody">
@@ -104,10 +104,11 @@
 									<Text text="Data Structures" class="homeTopicTag homeTopicTag--blue"/>
 									<Text text="Algorithms" class="homeTopicTag homeTopicTag--blue"/>
 									<Text text="AI Evaluated" class="homeTopicTag homeTopicTag--blue"/>
+									<Text text="Problem Solving" class="homeTopicTag homeTopicTag--blue"/>
 								</HBox>
 							</VBox>
 							<HBox alignItems="Center" justifyContent="Center" class="homeRoundFooter">
-								<Button text="Start Round 2" type="Emphasized" icon="sap-icon://play" press="onStartProgramming" class="homeStartBtn homeStartBtn--programming"/>
+								<Button text="{roundModel>/round2/text}" visible="{roundModel>/round2/visible}" enabled="{roundModel>/round2/enabled}" type="Emphasized" icon="sap-icon://play" press="onStartProgramming" class="homeStartBtn homeStartBtn--programming"/>
 							</HBox>
 						</VBox>
 						<!--  Round 3: Managerial  -->
@@ -118,11 +119,11 @@
 								</VBox>
 								<VBox class="homeRoundHeaderText">
 									<Text text="Round 3" class="homeRoundLabel"/>
-									<Title text="Managerial Round" level="H4" class="homeRoundTitle"/>
+									<Title text="Managerial Round" level="H4" class="homeRoundTitle" wrapping="true"/>
 								</VBox>
 								<HBox alignItems="Center" class="homeRoundStatus homeRoundStatus--pending">
-									<core:Icon src="sap-icon://pending" class="homeRoundStatusIcon"/>
-									<Text text="Pending" class="homeRoundStatusText"/>
+									<core:Icon class="homeRoundStatusIcon"/>
+									<Text text="Locked" class="homeRoundStatusText"/>
 								</HBox>
 							</HBox>
 							<VBox class="homeRoundBody">
@@ -143,8 +144,9 @@
 								</VBox>
 								<HBox class="homeRoundTopics" wrap="Wrap">
 									<Text text="Leadership" class="homeTopicTag homeTopicTag--purple"/>
-									<Text text="Decision Making" class="homeTopicTag homeTopicTag--purple"/>
 									<Text text="Communication" class="homeTopicTag homeTopicTag--purple"/>
+									<Text text="Teamwork" class="homeTopicTag homeTopicTag--purple"/>
+									<Text text="Decision Making" class="homeTopicTag homeTopicTag--purple"/>
 								</HBox>
 							</VBox>
 						</VBox>

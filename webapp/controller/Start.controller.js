@@ -82,7 +82,7 @@ sap.ui.define([
 
             var oPayload = {
                 candidate_id: oSession.getProperty("/candidates_id"),
-                test_id: 2,
+                test_id: 1,
                 status: "in_progress"
             };
 
