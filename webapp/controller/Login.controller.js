@@ -17,6 +17,8 @@ sap.ui.define([
             this.oSession.setProperty("/studentId", "");
             this.oSession.setProperty("/candidateName", "");
             this.oSession.setProperty("/candidateEmail", "");
+            this.oSession.setProperty("/skill_level", "Beginner (0-1 years)");
+            this.oSession.setProperty("/preferred_language", "JavaScript");
         },
         // ── Live change handlers (clear error on typing) ──────────────
         onStudentIdChange: function () {
@@ -76,7 +78,9 @@ sap.ui.define([
                 student_Id: oSession.getProperty("/studentId"),
                 candidate_Name: oSession.getProperty("/candidateName"),
                 candidate_Email: oSession.getProperty("/candidateEmail"),
-                flag: "start"
+                flag: "start",
+                skill_level: oSession.getProperty("/skill_level"),
+                preferred_language: oSession.getProperty("/preferred_language")
             };
             var oPage = this.byId("loginPage");
             oPage.setBusy(true);
@@ -84,7 +88,7 @@ sap.ui.define([
                 .then(response => {
                     oPage.setBusy(false);
                     oSession.setProperty("/candidates_id", response?.data?.results?.insertId);
-                    this.getOwnerComponent().getRouter().navTo("start");
+                    this.getOwnerComponent().getRouter().navTo("setup");
                 })
                 .catch((error) => {
                     oPage.setBusy(false);

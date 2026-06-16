@@ -24,24 +24,24 @@ sap.ui.define([
                 return this.getOwnerComponent().getRouter().navTo("login");
             }
 
-            // Disable right click
-            document.addEventListener("contextmenu", function (e) { e.preventDefault() });
+            // // Disable right click
+            // document.addEventListener("contextmenu", function (e) { e.preventDefault() });
 
-            // // Disable copy
-            document.addEventListener("copy", function (e) { e.preventDefault() });
+            // // // Disable copy
+            // document.addEventListener("copy", function (e) { e.preventDefault() });
 
-            // // Disable cut
-            document.addEventListener("cut", function (e) { e.preventDefault() });
+            // // // Disable cut
+            // document.addEventListener("cut", function (e) { e.preventDefault() });
 
-            // // Disable paste
-            document.addEventListener("paste", function (e) { e.preventDefault() });
+            // // // Disable paste
+            // document.addEventListener("paste", function (e) { e.preventDefault() });
 
-            // // Disable Ctrl+C, Ctrl+X, Ctrl+V
-            document.addEventListener("keydown", function (e) {
-                if (e.ctrlKey && (e.key === "c" || e.key === "C" || e.key === "x" || e.key === "X" || e.key === "v" || e.key === "V")) {
-                    e.preventDefault();
-                }
-            });
+            // // // Disable Ctrl+C, Ctrl+X, Ctrl+V
+            // document.addEventListener("keydown", function (e) {
+            //     if (e.ctrlKey && (e.key === "c" || e.key === "C" || e.key === "x" || e.key === "X" || e.key === "v" || e.key === "V")) {
+            //         e.preventDefault();
+            //     }
+            // });
 
             // this._testSubmitted = false;
             // this._testDialogOpen = false;

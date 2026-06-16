@@ -1,6 +1,123 @@
-<mvc:View controllerName="sap.com.interview.controller.View1"
-    xmlns:mvc="sap.ui.core.mvc"
-    xmlns="sap.m">
-    <Page id="page" title="{i18n>title}">
-    </Page>
+<mvc:View
+	xmlns:mvc="sap.ui.core.mvc"
+	xmlns="sap.m"
+	xmlns:l="sap.ui.layout"
+	xmlns:core="sap.ui.core" controllerName="sap.com.interview.controller.View1" displayBlock="true">
+	<Page id="mainPage" showHeader="false" class="assessPage">
+		<!--  ═══════════════ TOP BAR ═══════════════  -->
+		<customHeader>
+			<Bar class="assessTopBar">
+				<!--  Left: Brand + question counter  -->
+				<contentLeft>
+					<HBox alignItems="Center" class="brandBox">
+						<core:Icon src="sap-icon://syntax" class="brandIcon"/>
+						<Title text="AssessCode" level="H5" class="brandName"/>
+						<Text text="|" class="brandSep"/>
+						<Text id="questionLabel" text="{state>/questionLabel}" class="questionLabel"/>
+					</HBox>
+				</contentLeft>
+				<!--  Center: Progress dots  -->
+				<contentMiddle>
+					<HBox id="dotContainer" alignItems="Center" justifyContent="Center" class="dotBar"/>
+				</contentMiddle>
+				<!--  Right: Timer + Submit All  -->
+				<contentRight>
+					<HBox alignItems="Center" class="topBarRight">
+						<Button id="timerBtn" text="{state>/timerDisplay}" type="Default" enabled="false" class="timerBtn"/>
+						<Button text="Submit All" type="Emphasized" press="onSubmitAll" class="submitAllBtn"/>
+					</HBox>
+				</contentRight>
+			</Bar>
+		</customHeader>
+		<!--  ═══════════════ BODY: Two-column Splitter ═══════════════  -->
+		<content>
+			<l:Splitter id="mainSplitter" orientation="Horizontal" height="100%">
+				<!--  ──────── LEFT: Problem Panel ────────  -->
+				<ScrollContainer id="leftScroll" vertical="true" height="100%" class="leftPanel">
+					<layoutData>
+						<l:SplitterLayoutData size="42%"/>
+					</layoutData>
+					<VBox class="problemBox">
+						<!--  Question number + badges row  -->
+						<HBox alignItems="Center" class="qMeta">
+							<Text id="qNumLabel" text="" class="qNumLabel"/>
+							<ObjectStatus id="diffBadge" text="" class="diffBadge"/>
+							<ObjectStatus id="statusBadge" text="" class="statusBadge"/>
+							<ObjectStatus id="topicBadge" text="" state="None" class="topicBadge"/>
+						</HBox>
+						<!--  Title  -->
+						<Title id="qTitle" text="" level="H3" class="qTitle"/>
+						<!--  Description  -->
+						<FormattedText id="qDesc" htmlText="" class="qDesc"/>
+						<!--  Examples panel  -->
+						<Panel id="examplesPanel" headerText="Examples" expandable="false" expanded="true" class="examplesPanel">
+							<VBox id="examplesContainer" class="examplesBox"/>
+						</Panel>
+						<!--  Constraints panel  -->
+						<Panel id="constraintsPanel" headerText="Constraints" expandable="true" expanded="true" class="constraintsPanel">
+							<VBox id="constraintsContainer" class="constraintsBox"/>
+						</Panel>
+						<!--  Navigation  -->
+						<HBox justifyContent="SpaceBetween" alignItems="Center" class="navRow">
+							<Button id="prevBtn" text="← Previous" type="Default" press="onPrev"/>
+							<Button id="nextBtn" text="Next →" type="Default" press="onNext"/>
+						</HBox>
+					</VBox>
+				</ScrollContainer>
+				<!--  ──────── RIGHT: Editor + Output ────────  -->
+				<VBox height="100%" class="rightPanel">
+					<layoutData>
+						<l:SplitterLayoutData size="58%"/>
+					</layoutData>
+					<!--  Editor Toolbar  -->
+					<Toolbar class="editorToolbar">
+						<Select id="langSelect" change="onLangChange" class="langSelect">
+							<core:Item key="JavaScript" text="JavaScript"/>
+							<core:Item key="Java" text="Java"/>
+							<core:Item key="Python" text="Python"/>
+						</Select>
+						<Text id="fileInfo" text="solution.js" class="fileInfo"/>
+						<ToolbarSpacer/>
+						<Button id="resetBtn" text="↺ Reset" type="Default" press="onReset" class="editorBtn"/>
+						<Button id="runBtn" text="▶ Run" type="Default" press="onRun" class="editorBtn runBtn"/>
+						<Button id="submitBtn" text="✓ Submit" type="Emphasized" press="onSubmit" class="editorBtn submitBtn"/>
+					</Toolbar>
+					<!--  Code Editor  -->
+					<TextArea id="codeEditor" value="" growing="false" rows="18" width="100%" class="codeEditor" liveChange="onCodeChange"/>
+					<!--  Output Area  -->
+					<ScrollContainer id="outputScroll" vertical="true" class="outputArea">
+						<VBox id="outputContainer">
+							<!--  Placeholder  -->
+							<VBox id="outputPlaceholder" class="outputPlaceholder">
+								<core:Icon src="sap-icon://play" class="placeholderIcon"/>
+								<Text text="Run your code to see results here." class="placeholderText"/>
+							</VBox>
+							<!--  Running indicator  -->
+							<HBox id="runningIndicator" visible="false" alignItems="Center" class="runningIndicator">
+								<core:Icon src="sap-icon://process" class="runningIcon"/>
+								<Text text="Running test cases..." class="runningText"/>
+							</HBox>
+							<!--  Test results list  -->
+							<VBox id="testResultsContainer" visible="false" class="testResultsContainer"/>
+							<!--  Test summary  -->
+							<HBox id="testSummary" visible="false" alignItems="Center" class="testSummary">
+								<ObjectStatus id="testSummaryStatus" text=""/>
+							</HBox>
+							<!--  AI Feedback (shown after submit)  -->
+							<!-- <Panel id="aiFeedbackPanel" visible="false" headerText="AI Evaluation" class="aiFeedbackPanel">
+								<VBox class="aiFeedbackBox">
+									<HBox alignItems="Center" class="aiScoreRow">
+										<Title id="aiScoreTitle" text="—" level="H1" class="aiScore"/>
+										<Text text=" / 10" class="aiDenom"/>
+										<ObjectStatus id="aiVerdictStatus" text="Pending" class="aiVerdict"/>
+									</HBox>
+									<FormattedText id="aiFeedbackText" htmlText="" class="aiFeedbackText"/>
+									<VBox id="aiSuggestionsContainer" class="aiSuggestionsBox"/></VBox>
+							</Panel> -->
+						</VBox>
+					</ScrollContainer>
+				</VBox>
+			</l:Splitter>
+		</content>
+	</Page>
 </mvc:View>

@@ -1,0 +1,156 @@
+<mvc:View
+	xmlns:mvc="sap.ui.core.mvc"
+	xmlns="sap.m"
+	xmlns:core="sap.ui.core" controllerName="sap.com.interview.controller.Setup" displayBlock="true">
+	<Page showHeader="false" class="homePage" id="homePage">
+		<content>
+			<VBox class="homeWrapper">
+				<!--  Hero Section  -->
+				<VBox alignItems="Center" class="homeHero">
+					<VBox alignItems="Center" class="homeHeroInner">
+						<core:Icon src="sap-icon://document-text" class="homeHeroIcon"/>
+						<Title text="Assessment Overview" level="H2" class="homeHeroTitle"/>
+						<Text text="Complete all 3 rounds to finish your assessment" class="homeHeroSub"/>
+						<!--  Candidate Info Chips  -->
+						<HBox alignItems="Center" justifyContent="Center" class="homeCandidateRow">
+							<HBox alignItems="Center" class="homeChip">
+								<core:Icon src="sap-icon://badge" class="homeChipIcon"/>
+								<Text text="{session>/skill_level}" class="homeChipText"/>
+							</HBox>
+							<HBox alignItems="Center" class="homeChip">
+								<core:Icon src="sap-icon://source-code" class="homeChipIcon"/>
+								<Text text="{session>/preferred_language}" class="homeChipText"/>
+							</HBox>
+						</HBox>
+					</VBox>
+				</VBox>
+				<!--  Rounds Section  -->
+				<VBox alignItems="Center" class="homeRoundsSection">
+					<HBox justifyContent="Center" wrap="Wrap" class="homeRoundsRow">
+						<!--  Round 1: Aptitude  -->
+						<VBox class="homeRoundCard homeRoundCard--aptitude">
+							<HBox alignItems="Center" class="homeRoundHeader">
+								<VBox alignItems="Center" justifyContent="Center" class="homeRoundBadge homeRoundBadge--1">
+									<Text text="01" class="homeRoundBadgeNum"/>
+								</VBox>
+								<VBox class="homeRoundHeaderText">
+									<Text text="Round 1" class="homeRoundLabel"/>
+									<Title text="Aptitude Test" level="H4" class="homeRoundTitle"/>
+								</VBox>
+								<HBox alignItems="Center" class="homeRoundStatus homeRoundStatus--pending">
+									<core:Icon src="sap-icon://pending" class="homeRoundStatusIcon"/>
+									<Text text="Pending" class="homeRoundStatusText"/>
+								</HBox>
+							</HBox>
+							<VBox class="homeRoundBody">
+								<Text text="Test your logical reasoning, quantitative aptitude, and problem-solving skills through structured MCQs." class="homeRoundDesc"/>
+								<VBox class="homeRoundMeta">
+									<HBox alignItems="Center" class="homeMetaRow">
+										<core:Icon src="sap-icon://time-entry-request" class="homeMetaIcon"/>
+										<Text text="{oQuestionStatsModel>/Duration}" class="homeMetaText"/>
+									</HBox>
+									<HBox alignItems="Center" class="homeMetaRow">
+										<core:Icon src="sap-icon://question-mark" class="homeMetaIcon"/>
+										<Text text="{oQuestionStatsModel>/QuestionCount} Questions" class="homeMetaText"/>
+									</HBox>
+									<HBox alignItems="Center" class="homeMetaRow">
+										<core:Icon src="sap-icon://bar-chart" class="homeMetaIcon"/>
+										<Text text="MCQ Format" class="homeMetaText"/>
+									</HBox>
+								</VBox>
+								<HBox class="homeRoundTopics" wrap="Wrap">
+									<Text text="Logical Reasoning" class="homeTopicTag"/>
+									<Text text="Quantitative" class="homeTopicTag"/>
+									<Text text="Verbal" class="homeTopicTag"/>
+									<Text text="Data Interpretation" class="homeTopicTag"/>
+								</HBox>
+							</VBox>
+							<HBox alignItems="Center" justifyContent="Center" class="homeRoundFooter">
+								<Button text="Start Round 1" type="Emphasized" icon="sap-icon://play" press="onStartAptitude" class="homeStartBtn homeStartBtn--aptitude"/>
+							</HBox>
+						</VBox>
+						<!--  Round 2: Programming  -->
+						<VBox class="homeRoundCard homeRoundCard--programming">
+							<HBox alignItems="Center" class="homeRoundHeader">
+								<VBox alignItems="Center" justifyContent="Center" class="homeRoundBadge homeRoundBadge--2">
+									<Text text="02" class="homeRoundBadgeNum"/>
+								</VBox>
+								<VBox class="homeRoundHeaderText">
+									<Text text="Round 2" class="homeRoundLabel"/>
+									<Title text="Programming Round" level="H4" class="homeRoundTitle"/>
+								</VBox>
+								<HBox alignItems="Center" class="homeRoundStatus homeRoundStatus--pending">
+									<core:Icon src="sap-icon://pending" class="homeRoundStatusIcon"/>
+									<Text text="Pending" class="homeRoundStatusText"/>
+								</HBox>
+							</HBox>
+							<VBox class="homeRoundBody">
+								<Text text="Solve real-world coding challenges with AI-powered evaluation of your solution quality, efficiency, and approach." class="homeRoundDesc"/>
+								<VBox class="homeRoundMeta">
+									<HBox alignItems="Center" class="homeMetaRow">
+										<core:Icon src="sap-icon://time-entry-request" class="homeMetaIcon"/>
+										<Text text="{oProgrammingModel>/Duration}" class="homeMetaText"/>
+									</HBox>
+									<HBox alignItems="Center" class="homeMetaRow">
+										<core:Icon src="sap-icon://question-mark" class="homeMetaIcon"/>
+										<Text text="{oProgrammingModel>/QuestionCount} Questions" class="homeMetaText"/>
+									</HBox>
+									<HBox alignItems="Center" class="homeMetaRow">
+										<core:Icon src="sap-icon://source-code" class="homeMetaIcon"/>
+										<Text text="{session>/preferred_language}" class="homeMetaText"/>
+									</HBox>
+								</VBox>
+								<HBox class="homeRoundTopics" wrap="Wrap">
+									<Text text="Data Structures" class="homeTopicTag homeTopicTag--blue"/>
+									<Text text="Algorithms" class="homeTopicTag homeTopicTag--blue"/>
+									<Text text="AI Evaluated" class="homeTopicTag homeTopicTag--blue"/>
+								</HBox>
+							</VBox>
+							<HBox alignItems="Center" justifyContent="Center" class="homeRoundFooter">
+								<Button text="Start Round 2" type="Emphasized" icon="sap-icon://play" press="onStartProgramming" class="homeStartBtn homeStartBtn--programming"/>
+							</HBox>
+						</VBox>
+						<!--  Round 3: Managerial  -->
+						<VBox class="homeRoundCard homeRoundCard--managerial">
+							<HBox alignItems="Center" class="homeRoundHeader">
+								<VBox alignItems="Center" justifyContent="Center" class="homeRoundBadge homeRoundBadge--3">
+									<Text text="03" class="homeRoundBadgeNum"/>
+								</VBox>
+								<VBox class="homeRoundHeaderText">
+									<Text text="Round 3" class="homeRoundLabel"/>
+									<Title text="Managerial Round" level="H4" class="homeRoundTitle"/>
+								</VBox>
+								<HBox alignItems="Center" class="homeRoundStatus homeRoundStatus--pending">
+									<core:Icon src="sap-icon://pending" class="homeRoundStatusIcon"/>
+									<Text text="Pending" class="homeRoundStatusText"/>
+								</HBox>
+							</HBox>
+							<VBox class="homeRoundBody">
+								<Text text="Demonstrate leadership thinking, situational judgement, and communication skills through scenario-based questions." class="homeRoundDesc"/>
+								<VBox class="homeRoundMeta">
+									<HBox alignItems="Center" class="homeMetaRow">
+										<core:Icon src="sap-icon://time-entry-request" class="homeMetaIcon"/>
+										<Text text="45 Minutes" class="homeMetaText"/>
+									</HBox>
+									<HBox alignItems="Center" class="homeMetaRow">
+										<core:Icon src="sap-icon://question-mark" class="homeMetaIcon"/>
+										<Text text="15 Questions" class="homeMetaText"/>
+									</HBox>
+									<HBox alignItems="Center" class="homeMetaRow">
+										<core:Icon src="sap-icon://bar-chart" class="homeMetaIcon"/>
+										<Text text="Scenario Based" class="homeMetaText"/>
+									</HBox>
+								</VBox>
+								<HBox class="homeRoundTopics" wrap="Wrap">
+									<Text text="Leadership" class="homeTopicTag homeTopicTag--purple"/>
+									<Text text="Decision Making" class="homeTopicTag homeTopicTag--purple"/>
+									<Text text="Communication" class="homeTopicTag homeTopicTag--purple"/>
+								</HBox>
+							</VBox>
+						</VBox>
+					</HBox>
+				</VBox>
+			</VBox>
+		</content>
+	</Page>
+</mvc:View>

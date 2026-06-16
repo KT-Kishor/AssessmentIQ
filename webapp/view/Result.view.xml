@@ -20,6 +20,9 @@
 
                 <VBox class="aiqResultCard">
 
+                    <!-- ═══════════════════════════════════════════════ -->
+                    <!-- HERO — Score Ring + Verdict                     -->
+                    <!-- ═══════════════════════════════════════════════ -->
                     <VBox class="aiqResultHero" alignItems="Center">
 
                         <core:HTML id="scoreRingHtml" content="
@@ -33,15 +36,19 @@
                                 &lt;div class='aiqScoreLabel'&gt;
                                     &lt;span class='aiqScorePct' id='aiqScorePctEl'&gt;—&lt;/span&gt;
                                     &lt;span class='aiqScoreSublbl'&gt;Score&lt;/span&gt;
-                                    &lt;/div&gt;
+                                &lt;/div&gt;
                             &lt;/div&gt;
                         "/>
 
-                        <Title id="resultVerdict" text="Assessment Complete" class="aiqResultVerdict"/>
-                        <Text id="resultStatus" text="" class="aiqResultNameLine"/>
-                        <Text id="resultNameLine" text="" class="aiqResultNameLine"/>
+                        <Title id="resultVerdict"  text="Assessment Complete" class="aiqResultVerdict"/>
+                        <Text  id="resultStatus"   text=""                    class="aiqResultNameLine"/>
+                        <Text  id="resultNameLine" text=""                    class="aiqResultNameLine"/>
+
                     </VBox>
 
+                    <!-- ═══════════════════════════════════════════════ -->
+                    <!-- STATS — Score / Time / Correct / Wrong          -->
+                    <!-- ═══════════════════════════════════════════════ -->
                     <VBox class="aiqResultBody">
                         <core:HTML id="resultStatsHtml" content="
                             &lt;div class='aiqResultStats'&gt;
@@ -65,13 +72,44 @@
                         "/>
                     </VBox>
 
-                    <FlexBox class="aiqResultFooter"
-    justifyContent="Center"
-    alignItems="Center"
-    direction="Row"
-    wrap="NoWrap">
+                    <!-- ═══════════════════════════════════════════════ -->
+                    <!-- ROUND 2 SECTION — Visible only when PASS        -->
+                    <!-- Bound to "resultState" model set in controller  -->
+                    <!-- ═══════════════════════════════════════════════ -->
+                    <VBox
+                        id="round2Wrapper"
+                        class="aiqRound2Wrapper"
+                        visible="{resultState>/isPassed}">
+
+                        <!-- Divider -->
+                        <core:HTML content="&lt;div class='aiqSectionDivider'&gt;&lt;/div&gt;"/>
+
+                        <!-- Congratulations banner -->
+                        <core:HTML content="
+                            &lt;div class='aiqCongratsBanner'&gt;
+                                &lt;span class='aiqCongratsIcon'&gt;&amp;#127942;&lt;/span&gt;
+                                &lt;div&gt;
+                                    &lt;div class='aiqCongratsBold'&gt;You cleared Round 1!&lt;/div&gt;
+                                    &lt;div class='aiqCongratsText'&gt;You have unlocked Round 2 &amp;mdash; Coding Challenge&lt;/div&gt;
+                                &lt;/div&gt;
+                            &lt;/div&gt;
+                        "/>
+
+                    </VBox>
+
+                    
+
+                    <!-- ═══════════════════════════════════════════════ -->
+                    <!-- FOOTER BUTTONS                                  -->
+                    <!-- ═══════════════════════════════════════════════ -->
+                    <FlexBox class="aiqResultFooter" justifyContent="Center" alignItems="Center" direction="Row" wrap="NoWrap">
+
+                        <!-- Always visible -->
                         <Button id="btnReview" text="Review Answers" class="aiqBtnOutline" press="onReviewAnswers"/>
-                        <Button id="btnNewTest" text="Start New Test" class="aiqBtnPrimary" press="onNewTest"/>
+
+                        <!-- FAIL: Start New Test -->
+                        <Button id="btnNewTest" type="Emphasized" text="Go to Home" class="aiqBtnOutline" press="onNewTest"/>
+
                     </FlexBox>
 
                 </VBox>

@@ -22,14 +22,14 @@ sap.ui.define([
             if (!sName) return this.getOwnerComponent().getRouter().navTo("login");
 
             this.byId("loggedInText").setText("Logged in as: " + sName + " (" + sEmail + ")");
-            this.QuestionsReadCall();
+            // this.QuestionsReadCall();
         },
 
         QuestionsReadCall: function() {
             var oPage = this.byId("startPage");
             oPage.setBusy(true);
 
-            this.ajaxReadWithJQuery("Questions")
+            this.ajaxReadWithJQuery("Questions",{ test_id : 1 })
                 .then(response => {
                     oPage.setBusy(false);
 
@@ -68,7 +68,7 @@ sap.ui.define([
             var oQuestionStatsModel = this.getOwnerComponent().getModel("oQuestionStatsModel");
 
             var aAnswers = [];
-            for (var i = 0; i < 10; i++) {
+            for (var i = 0; i < oQuestionStatsModel.getProperty("/QuestionCount"); i++) {
                 aAnswers.push(null);
             }
 
@@ -240,10 +240,10 @@ sap.ui.define([
             }
         },
 
-        onConsentSelect: function (oEvent) {
-            var bSelected = oEvent.getParameter("selected");
-            sap.ui.getCore().byId("idCaptureBtn").setEnabled(bSelected);
-        }
+        // onConsentSelect: function (oEvent) {
+        //     var bSelected = oEvent.getParameter("selected");
+        //     sap.ui.getCore().byId("idCaptureBtn").setEnabled(bSelected);
+        // }
 
     });
 });

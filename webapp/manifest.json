@@ -107,7 +107,9 @@
           "target": [
             "review"
           ]
-        }
+        },
+        { "name": "setup", "pattern": "Setup",       "target": "setup" },
+        { "name": "view1",  "pattern": "View1",   "target": "view1"  }
       ],
       "targets": {
         "login": {
@@ -129,7 +131,9 @@
         "review": {
           "viewName": "Review",
           "viewId": "review"
-        }
+        },
+        "setup": { "viewName": "Setup", "viewId": "setup" },
+        "view1":  { "viewName": "View1",  "viewId": "view1"  }
       }
     },
     "rootView": {

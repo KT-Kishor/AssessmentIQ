@@ -1,8 +1,9 @@
 sap.ui.define([
     "sap/ui/core/UIComponent",
     "sap/ui/Device",
-    "sap/ui/model/json/JSONModel"
-], function (UIComponent, Device, JSONModel) {
+    "sap/ui/model/json/JSONModel",
+     "sap/com/interview/model/questions"
+], function (UIComponent, Device, JSONModel, questions) {
     "use strict";
 
     return UIComponent.extend("sap.com.interview.Component", {
@@ -13,6 +14,22 @@ sap.ui.define([
         },
 
         init: function () {
+            var oQModel = new JSONModel({ items: questions });
+            this.setModel(oQModel, "questions");
+
+            // App state model
+            var oState = new JSONModel({
+                candidateName: "",
+                skill: "intermediate",
+                currentIndex: 0,
+                currentLang: "JavaScript",
+                timerSeconds: 5400,
+                timerDisplay: "01:30:00",
+                timerWarn: false,
+                questionLabel: "Q 1 of 5",
+                progressPct: "0%"
+            });
+            this.setModel(oState, "state");
             UIComponent.prototype.init.apply(this, arguments);
 
             // Initialize the session model (shared across all views)
