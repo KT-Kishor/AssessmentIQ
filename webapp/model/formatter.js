@@ -2,34 +2,24 @@ sap.ui.define([], function () {
     "use strict";
 
     return {
-
-        getRoundStatusClass: function (sStatus) {
-
-            switch ((sStatus || "").toLowerCase()) {
-
-                case "submitted":
-                    return "homeRoundStatus homeRoundStatus--success";
-
-                case "in progress":
-                    return "homeRoundStatus homeRoundStatus--progress";
-
-                default:
-                    return "homeRoundStatus homeRoundStatus--pending";
+        statusState: function (sStatus) {
+            if (!sStatus) {
+                return "None";
             }
-        },
 
-        getRoundStatusIcon: function (sStatus) {
-
-            switch ((sStatus || "").toLowerCase()) {
-
-                case "submitted":
-                    return "sap-icon://accept";
-
+            // Convert to lowercase to prevent case-matching issues
+            switch (sStatus.toLowerCase()) {
+                case "pending":
+                    return "Indication13"; // A nice subtle grey/blue info state
                 case "in progress":
-                    return "sap-icon://process";
-
+                case "in_progress":
+                    return "Information";  // Blue
+                case "submitted":
+                    return "Success";      // Green
+                case "locked":
+                    return "Error";        // Red
                 default:
-                    return "sap-icon://pending";
+                    return "None";         // Standard dark text
             }
         }
     };

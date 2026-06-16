@@ -37,10 +37,7 @@
 									<Text text="Round 1" class="homeRoundLabel"/>
 									<Title text="Aptitude Test" level="H4" class="homeRoundTitle"/>
 								</VBox>
-								<HBox alignItems="Center" class="homeRoundStatus homeRoundStatus--pending">
-									<core:Icon class="homeRoundStatusIcon"/>
-									<Text text="{roundModel>/round1/status}" class="homeRoundStatusText"/>
-								</HBox>
+								<ObjectStatus text="{roundModel>/round1/status}" state="{path: 'roundModel>/round1/status',formatter: '.Formatter.statusState'}" class="homeRoundStatusText" inverted="true"/>				
 							</HBox>
 							<VBox class="homeRoundBody">
 								<Text text="Test your logical reasoning, quantitative aptitude, and problem-solving skills through structured MCQs." class="homeRoundDesc"/>
@@ -79,10 +76,7 @@
 									<Text text="Round 2" class="homeRoundLabel"/>
 									<Title text="Coding Round" level="H4" class="homeRoundTitle" wrapping="true"/>
 								</VBox>
-								<HBox alignItems="Center" class="homeRoundStatus homeRoundStatus--pending">
-									<core:Icon class="homeRoundStatusIcon"/>
-									<Text text="{roundModel>/round2/status}" class="homeRoundStatusText"/>
-								</HBox>
+								<ObjectStatus text="{roundModel>/round2/status}" state="{path: 'roundModel>/round2/status',formatter: '.Formatter.statusState'}" class="homeRoundStatusText" inverted="true"/>				
 							</HBox>
 							<VBox class="homeRoundBody">
 								<Text text="Solve real-world coding challenges with AI-powered evaluation of your solution quality, efficiency, and approach." class="homeRoundDesc"/>
@@ -121,10 +115,7 @@
 									<Text text="Round 3" class="homeRoundLabel"/>
 									<Title text="Managerial Round" level="H4" class="homeRoundTitle" wrapping="true"/>
 								</VBox>
-								<HBox alignItems="Center" class="homeRoundStatus homeRoundStatus--pending">
-									<core:Icon class="homeRoundStatusIcon"/>
-									<Text text="Locked" class="homeRoundStatusText"/>
-								</HBox>
+								<ObjectStatus inverted="true" text="Locked"	state="Error"/>
 							</HBox>
 							<VBox class="homeRoundBody">
 								<Text text="Demonstrate leadership thinking, situational judgement, and communication skills through scenario-based questions." class="homeRoundDesc"/>
