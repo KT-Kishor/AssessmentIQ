@@ -3,32 +3,30 @@
 	xmlns="sap.m"
 	xmlns:l="sap.ui.layout"
 	xmlns:core="sap.ui.core" controllerName="sap.com.interview.controller.View1" displayBlock="true">
-	<Page id="mainPage" showHeader="false" class="assessPage">
+	<Page id="mainPage" showHeader="true" class="assessPage">
 		<!--  ═══════════════ TOP BAR ═══════════════  -->
 		<customHeader>
-			<Bar class="assessTopBar">
-				<!--  Left: Brand + question counter  -->
-				<contentLeft>
-					<HBox alignItems="Center" class="brandBox">
-						<core:Icon src="sap-icon://syntax" class="brandIcon"/>
-						<Title text="AssessCode" level="H5" class="brandName"/>
-						<Text text="|" class="brandSep"/>
-						<Text id="questionLabel" text="{state>/questionLabel}" class="questionLabel"/>
-					</HBox>
-				</contentLeft>
-				<!--  Center: Progress dots  -->
-				<contentMiddle>
-					<HBox id="dotContainer" alignItems="Center" justifyContent="Center" class="dotBar"/>
-				</contentMiddle>
-				<!--  Right: Timer + Submit All  -->
-				<contentRight>
-					<HBox alignItems="Center" class="topBarRight">
-						<Button id="timerBtn" text="{state>/timerDisplay}" type="Default" enabled="false" class="timerBtn"/>
-						<Button text="Submit All" type="Emphasized" press="onSubmitAll" class="submitAllBtn"/>
-					</HBox>
-				</contentRight>
-			</Bar>
-		</customHeader>
+    <OverflowToolbar class="assessTopBar" height="52px">
+        
+        <HBox width="33%" alignItems="Center" justifyContent="Start" class="brandBox">
+            <Text id="questionLabel" text="{state>/questionLabel}" class="questionLabel"/>
+            <HBox id="dotContainer" alignItems="Center" justifyContent="Center" />
+        </HBox>
+        
+        <ToolbarSpacer />
+        
+        <VBox width="34%" alignItems="Center" justifyContent="Center" class="dotBar">
+            <Button id="timerBtn" text="{state>/timerDisplay}" type="Default" enabled="false" class="timerBtn" style="margin-bottom: 4px;"/>
+        </VBox>
+        
+        <ToolbarSpacer />
+        
+        <HBox width="32%" alignItems="Center" justifyContent="End" class="topBarRight" >
+            <Button text="Submit All" width="8rem" type="Emphasized" press="onSubmitAll" class="submitAllBtn" visible="false"/>
+        </HBox>
+        
+    </OverflowToolbar>
+</customHeader>
 		<!--  ═══════════════ BODY: Two-column Splitter ═══════════════  -->
 		<content>
 			<l:Splitter id="mainSplitter" orientation="Horizontal" height="100%">
@@ -103,17 +101,23 @@
 							<HBox id="testSummary" visible="false" alignItems="Center" class="testSummary">
 								<ObjectStatus id="testSummaryStatus" text=""/>
 							</HBox>
-							<!--  AI Feedback (shown after submit)  -->
-							<!-- <Panel id="aiFeedbackPanel" visible="false" headerText="AI Evaluation" class="aiFeedbackPanel">
-								<VBox class="aiFeedbackBox">
-									<HBox alignItems="Center" class="aiScoreRow">
-										<Title id="aiScoreTitle" text="—" level="H1" class="aiScore"/>
-										<Text text=" / 10" class="aiDenom"/>
-										<ObjectStatus id="aiVerdictStatus" text="Pending" class="aiVerdict"/>
+							
+							<VBox id="aiFeedbackPanel" visible="false" class="aiFeedbackPanel" style="margin-top: 15px; padding: 10px; border: 1px solid #dcdcdc; border-radius: 4px; background-color: #fafdff;">
+								<HBox alignItems="Center" justifyContent="SpaceBetween" style="margin-bottom: 10px; border-bottom: 2px solid #e5e5e5; padding-bottom: 5px;">
+									<Title text="Gemini AI Code Review Evaluation" level="H4"/>
+									<HBox alignItems="Center">
+										<ObjectStatus text="Score: " style="font-weight: bold;"/>
+										<ObjectStatus id="aiScoreTitle" text="" state="None" style="font-weight: bold; margin-right: 15px; font-size: 1.1rem;"/>
+										<ObjectStatus id="aiVerdictStatus" text="" style="font-weight: bold;"/>
 									</HBox>
-									<FormattedText id="aiFeedbackText" htmlText="" class="aiFeedbackText"/>
-									<VBox id="aiSuggestionsContainer" class="aiSuggestionsBox"/></VBox>
-							</Panel> -->
+								</HBox>
+								
+								<FormattedText id="aiFeedbackText" htmlText="" class="sapUiSmallMarginBottom"/>
+								
+								<Title text="Key Suggestions &amp; Observations" level="H5" style="margin-top: 10px; margin-bottom: 5px;"/>
+								<VBox id="aiSuggestionsContainer" class="aiSuggestionsBox"/>
+							</VBox>
+
 						</VBox>
 					</ScrollContainer>
 				</VBox>

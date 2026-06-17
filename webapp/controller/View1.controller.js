@@ -9,8 +9,7 @@ sap.ui.define([
     "sap/m/ObjectStatus",
     "sap/m/Button",
     "sap/ui/core/Icon",
-    "../model/api"
-], function (BaseController, JSONModel, MessageToast, VBox, HBox, Text, FormattedText, ObjectStatus, Button, Icon, Api) {
+], function (BaseController, JSONModel, MessageToast, VBox, HBox, Text, FormattedText, ObjectStatus, Button, Icon) {
     "use strict";
 
     var EXT_MAP = { JavaScript: "solution.js", Java: "Solution.java", Python: "solution.py" };
@@ -18,23 +17,77 @@ sap.ui.define([
     var STATUS_STATE = { "Submitted": "Success", "In Progress": "Warning", "Not Attempted": "None" };
 
     return BaseController.extend("sap.com.interview.controller.View1", {
-
-        // ─────────────────────────────────────────────────
         //  LIFECYCLE
         // ─────────────────────────────────────────────────
         onInit: function () {
             this._timerInterval = null;
             this._state = this.getOwnerComponent().getModel("state");
-            this._questions = this.getOwnerComponent().getModel("questions").getData().items;
 
-            // Re-read questions each time this view is entered (they may be AI-generated)
+            // We will initialize this._questions dynamically inside the route pattern match listener instead.
+            this._questions = [];
+
             var self = this;
             this.getOwnerComponent().getRouter().getRoute("view1").attachPatternMatched(function () {
-                self._questions = self.getOwnerComponent().getModel("questions").getData().items;
+
+                const oSession = self.getOwnerComponent().getModel("session");
+
+                if (!oSession.getProperty("/candidateName")) return self.getOwnerComponent().getRouter().navTo("login");
+
+                // 1. Fetch the raw payload data from 'oProgrammingModel'
+                var oViewModel = self.getView().getModel("oProgrammingModel");
+                var oRawData = oViewModel ? oViewModel.getData() : null;
+                var aRawQuestions = oRawData && oRawData.Questions ? oRawData.Questions : [];
+
+                // Helper safe JSON parse methods
+                var parseJSON = function (str) { try { return JSON.parse(str || "{}"); } catch (e) { return {}; } };
+                var parseArray = function (str) { try { return JSON.parse(str || "[]"); } catch (e) { return []; } };
+
+                // 2. Transform the raw backend questions into the clean structures your view elements expect
+                self._questions = aRawQuestions.map(function (q) {
+                    var aExamples = (q.options || []).map(function (opt) {
+                        var oNoteObj = parseJSON(opt.note);
+                        return {
+                            input: oNoteObj.input || "",
+                            output: oNoteObj.output || "",
+                            note: oNoteObj.description || ""
+                        };
+                    });
+
+                    return {
+                        id: q.id,
+                        title: q.title,
+                        difficulty: q.difficulty ? q.difficulty.charAt(0).toUpperCase() + q.difficulty.slice(1) : "Easy",
+                        skill: q.skill_levels ? q.skill_levels.split(",") : [],
+                        languages: q.allowed_languages ? q.allowed_languages.split(",") : [],
+                        topic: q.topic,
+                        desc: q.question_text,
+                        constraints: parseArray(q.constraints),
+                        examples: aExamples,
+                        starter: parseJSON(q.starter_code),
+                        status: "Not Attempted", // Baseline status expected by STATUS_STATE badge object
+                        codeStore: { JavaScript: "", Java: "", Python: "" } // Container to cache user draft inputs
+                    };
+                });
+
+                // 3. Keep your global 'questions' component model synchronized if other views depend on it
+                var oQuestionsComponentModel = self.getOwnerComponent().getModel("questions");
+                if (oQuestionsComponentModel) {
+                    oQuestionsComponentModel.setProperty("/items", self._questions);
+                }
+
+                // 4. Reset state controls and kick off UI layout updates
                 self._state.setProperty("/currentIndex", 0);
                 self._state.setProperty("/questionLabel", "Q 1 of " + self._questions.length);
+
+                // Dynamically configure timer limit if "Duration" comes directly from the test configuration properties
+                if (oRawData && oRawData.Duration) {
+                    var iSeconds = oRawData.Duration * 60; // converts minutes to seconds
+                    self._state.setProperty("/timerSeconds", iSeconds);
+                }
+
                 self._buildDots();
                 self._loadQuestion(0);
+
                 if (self._timerInterval) { clearInterval(self._timerInterval); }
                 self._startTimer();
             });
@@ -48,77 +101,130 @@ sap.ui.define([
         //  QUESTION LOADING
         // ─────────────────────────────────────────────────
         _loadQuestion: function (index) {
+            debugger;
             var q = this._questions[index];
-            var lang = this._state.getProperty("/currentLang");
+            var lang = this._state.getProperty("/currentLang") || "JavaScript";
             var view = this.getView();
 
-            // State
+            if (!q) {
+                sap.m.MessageToast.show("Error: Selected question context is unavailable.");
+                return;
+            }
+
+            // 1. Core State Properties Sync
             this._state.setProperty("/currentIndex", index);
             this._state.setProperty("/questionLabel", "Q " + (index + 1) + " of " + this._questions.length);
             this._updateProgress();
 
-            // Header meta
+            // 2. Header Meta Properties Initialization
             view.byId("qNumLabel").setText("Question " + (index + 1) + " of " + this._questions.length);
-            view.byId("qTitle").setText(q.title);
+            view.byId("qTitle").setText(q.title || "Coding Challenge");
 
+            // Difficulty Badges Control
+            var sDifficulty = q.difficulty || "easy";
             var diffBadge = view.byId("diffBadge");
-            diffBadge.setText(q.difficulty);
-            diffBadge.setState(DIFF_STATE[q.difficulty] || "None");
+            diffBadge.setText(sDifficulty);
+            if (typeof DIFF_STATE !== "undefined") {
+                diffBadge.setState(DIFF_STATE[sDifficulty] || "None");
+            }
             diffBadge.removeStyleClass("badge-easy badge-medium badge-hard");
-            diffBadge.addStyleClass("badge-" + q.difficulty.toLowerCase());
+            diffBadge.addStyleClass("badge-" + sDifficulty.toLowerCase());
 
+            // Status Badges
+            var sStatus = q.status || "Unsolved";
             var statusBadge = view.byId("statusBadge");
-            statusBadge.setText(q.status);
-            statusBadge.setState(STATUS_STATE[q.status] || "None");
+            statusBadge.setText(sStatus);
+            if (typeof STATUS_STATE !== "undefined") {
+                statusBadge.setState(STATUS_STATE[sStatus] || "None");
+            }
 
-            view.byId("topicBadge").setText(q.topic);
+            view.byId("topicBadge").setText(q.topic || "General");
 
-            // Description
-            view.byId("qDesc").setHtmlText(q.desc);
+            // 3. FIX: Handle problem description text gracefully across payload variations
+            var sProblemText = q.question_text || q.description || q.desc || "";
+            view.byId("qDesc").setHtmlText("<p style='line-height:1.5; color:#333;'>" + sProblemText + "</p>");
 
-            // Examples
+            // 4. FIX: Safely parse both "examples" and nested "options" layout arrays
             var exBox = view.byId("examplesContainer");
             exBox.destroyItems();
-            q.examples.forEach(function (ex, i) {
-                var rows = new VBox().addStyleClass("exampleBlock");
-                rows.addItem(new Text({ text: "Example " + (i + 1) }).addStyleClass("exLabel"));
-                var inRow = new HBox();
-                inRow.addItem(new Text({ text: "Input:" }).addStyleClass("exKey"));
-                inRow.addItem(new Text({ text: ex.input }).addStyleClass("exVal"));
-                rows.addItem(inRow);
-                var outRow = new HBox();
-                outRow.addItem(new Text({ text: "Output:" }).addStyleClass("exKey"));
-                outRow.addItem(new Text({ text: ex.output }).addStyleClass("exVal"));
-                rows.addItem(outRow);
-                if (ex.note) {
-                    rows.addItem(new Text({ text: "// " + ex.note }).addStyleClass("exNote"));
+
+            // Normalize raw options data to a standard array format
+            var aRawExamples = q.examples || q.options || [];
+
+            aRawExamples.forEach(function (ex, i) {
+                var rows = new sap.m.VBox().addStyleClass("exampleBlock");
+                rows.addItem(new sap.m.Text({ text: "Example " + (i + 1) }).addStyleClass("exLabel"));
+
+                // Extract data properly, whether flat or nested within an option block
+                var sInputVal = "";
+                var sOutputVal = "";
+                var sNoteVal = "";
+
+                if (ex.note && typeof ex.note === "object") {
+                    sInputVal = ex.note.input || "";
+                    sOutputVal = ex.note.output || "";
+                    sNoteVal = ex.note.description || ex.note.note || "";
+                } else {
+                    sInputVal = ex.input || "";
+                    sOutputVal = ex.output || "";
+                    sNoteVal = ex.note || "";
                 }
+
+                // Render Input Row
+                var inRow = new sap.m.HBox();
+                inRow.addItem(new sap.m.Text({ text: "Input:" }).addStyleClass("exKey"));
+                inRow.addItem(new sap.m.Text({ text: sInputVal }).addStyleClass("exVal"));
+                rows.addItem(inRow);
+
+                // Render Output Row
+                var outRow = new sap.m.HBox();
+                outRow.addItem(new sap.m.Text({ text: "Output:" }).addStyleClass("exKey"));
+                outRow.addItem(new sap.m.Text({ text: sOutputVal }).addStyleClass("exVal"));
+                rows.addItem(outRow);
+
+                // Render Explanation Note Row if it exists
+                if (sNoteVal) {
+                    rows.addItem(new sap.m.Text({ text: "// " + sNoteVal }).addStyleClass("exNote"));
+                }
+
                 exBox.addItem(rows);
             });
 
-            // Constraints
+            // 5. Constraints Array Safe Iteration
             var conBox = view.byId("constraintsContainer");
             conBox.destroyItems();
-            q.constraints.forEach(function (c) {
-                var row = new HBox({ alignItems: "Center" }).addStyleClass("constraintRow");
-                row.addItem(new Icon({ src: "sap-icon://circle-task-2" }).addStyleClass("constraintBullet"));
-                row.addItem(new Text({ text: c }).addStyleClass("constraintText"));
-                conBox.addItem(row);
+
+            var aConstraints = q.constraints || [];
+            aConstraints.forEach(function (c) {
+                // Safe check: extract string if constraint arrives as an object wrapper
+                var sConstraintText = typeof c === "object" ? (c.text || c.option_text || "") : c;
+
+                if (sConstraintText) {
+                    var row = new sap.m.HBox({ alignItems: "Center" }).addStyleClass("constraintRow");
+                    row.addItem(new sap.ui.core.Icon({ src: "sap-icon://circle-task-2" }).addStyleClass("constraintBullet"));
+                    row.addItem(new sap.m.Text({ text: sConstraintText }).addStyleClass("constraintText"));
+                    conBox.addItem(row);
+                }
             });
 
-            // Code editor
-            var code = q.codeStore[lang] || q.starter[lang] || "";
-            view.byId("codeEditor").setValue(code);
-            view.byId("fileInfo").setText(EXT_MAP[lang] || "solution.js");
+            // 6. FIX: Resolve code strings accurately across 'starter_code' and 'starter' keys
+            var oStarterSource = q.starter_code || q.starter || {};
+            var oStorageSource = q.codeStore || {};
+            var code = oStorageSource[lang] || oStarterSource[lang] || "";
 
-            // Nav buttons
+            view.byId("codeEditor").setValue(code);
+
+            var sExt = "js";
+            if (lang === "Python") { sExt = "py"; }
+            else if (lang === "Java") { sExt = "java"; }
+            view.byId("fileInfo").setText((typeof EXT_MAP !== "undefined" ? EXT_MAP[lang] : null) || "solution." + sExt);
+
+            // 7. Navigation Buttons State Enforcement
             view.byId("prevBtn").setEnabled(index > 0);
             view.byId("nextBtn").setEnabled(index < this._questions.length - 1);
 
-            // Clear output
+            // Clear previous output views and trigger dots updates
             this._resetOutput();
-
-            // Update dots
             this._updateDots();
         },
 
@@ -129,7 +235,6 @@ sap.ui.define([
             view.byId("testResultsContainer").setVisible(false);
             view.byId("testResultsContainer").destroyItems();
             view.byId("testSummary").setVisible(false);
-            view.byId("aiFeedbackPanel").setVisible(false);
         },
 
         // ─────────────────────────────────────────────────
@@ -192,12 +297,19 @@ sap.ui.define([
         // ─────────────────────────────────────────────────
         onRun: function () {
             var idx = this._state.getProperty("/currentIndex");
-            var lang = this._state.getProperty("/currentLang");
+            var lang = this._state.getProperty("/currentLang") || "JavaScript";
             var q = this._questions[idx];
-            var code = this.getView().byId("codeEditor").getValue().trim();
 
-            if (!code || code === q.starter[lang]) {
-                MessageToast.show("Write your solution first!");
+            if (!q) {
+                sap.m.MessageToast.show("Question context is unavailable!");
+                return;
+            }
+
+            var code = this.getView().byId("codeEditor").getValue().trim();
+            var sStarterCode = q.starter && q.starter[lang] ? q.starter[lang].trim() : "";
+
+            if (!code || code === sStarterCode) {
+                sap.m.MessageToast.show("Write your solution first!");
                 return;
             }
 
@@ -206,31 +318,25 @@ sap.ui.define([
             view.byId("runningIndicator").setVisible(true);
             view.byId("testResultsContainer").setVisible(false);
             view.byId("testSummary").setVisible(false);
-            view.byId("aiFeedbackPanel").setVisible(false);
             view.byId("runBtn").setEnabled(false);
 
             var self = this;
-            setTimeout(function () {
-                var results = self._simulateTestResults(q);
-                self._renderTestResults(results, q);
-                view.byId("runningIndicator").setVisible(false);
-                view.byId("runBtn").setEnabled(true);
+            setTimeout(async function () {
+                try {
+                    var results = await self._simulateTestResults(q);
+                    self._renderTestResults(results, q);
+                } catch (oErr) {
+                    sap.m.MessageToast.show("Test Execution Interrupted: " + oErr.message);
+                } finally {
+                    view.byId("runningIndicator").setVisible(false);
+                    view.byId("runBtn").setEnabled(true);
+                }
             }, 900);
         },
 
-        _simulateTestResults: function (q) {
-            return q.examples.map(function (ex) {
-                var pass = Math.random() > 0.3 || q.status === "Submitted";
-                return {
-                    input: ex.input,
-                    expected: ex.output,
-                    got: pass ? ex.output : "null",
-                    pass: pass,
-                    time: Math.floor(Math.random() * 80 + 10)
-                };
-            });
-        },
-
+        // ─────────────────────────────────────────────────────────────────────────────
+        // 3. RENDER TEST RESULTS: Resolves control references natively
+        // ─────────────────────────────────────────────────────────────────────────────
         _renderTestResults: function (results, q) {
             var view = this.getView();
             var container = view.byId("testResultsContainer");
@@ -240,152 +346,412 @@ sap.ui.define([
             results.forEach(function (r, i) {
                 if (r.pass) { passed++; }
 
-                var block = new VBox().addStyleClass("testBlock " + (r.pass ? "test-pass" : "test-fail"));
+                // Explicitly using sap.m namespaced constructs to prevent global ReferenceErrors
+                var block = new sap.m.VBox().addStyleClass("testBlock " + (r.pass ? "test-pass" : "test-fail"));
 
-                // Header row
-                var hdr = new HBox({ alignItems: "Center" }).addStyleClass("testBlockHdr " + (r.pass ? "test-hdr-pass" : "test-hdr-fail"));
-                hdr.addItem(new Icon({ src: r.pass ? "sap-icon://accept" : "sap-icon://decline" }).addStyleClass(r.pass ? "iconPass" : "iconFail"));
-                hdr.addItem(new Text({ text: " Test " + (i + 1) + " — " + (r.pass ? "Passed" : "Failed") }).addStyleClass("testHdrText"));
-                hdr.addItem(new Text({ text: r.time + "ms" }).addStyleClass("testTime"));
+                // Header configuration
+                var hdr = new sap.m.HBox({ alignItems: "Center" }).addStyleClass("testBlockHdr " + (r.pass ? "test-hdr-pass" : "test-hdr-fail"));
+                hdr.addItem(new sap.ui.core.Icon({ src: r.pass ? "sap-icon://accept" : "sap-icon://decline" }).addStyleClass(r.pass ? "iconPass" : "iconFail"));
+                hdr.addItem(new sap.m.Text({ text: " Test " + (i + 1) + " — " + (r.pass ? "Passed" : "Failed") }).addStyleClass("testHdrText"));
+                // hdr.addItem(new sap.m.Text({ text: r.time + "ms" }).addStyleClass("testTime"));
                 block.addItem(hdr);
 
-                // Body rows
-                var body = new VBox().addStyleClass("testBlockBody");
+                // Content details container
+                var body = new sap.m.VBox().addStyleClass("testBlockBody");
                 [
                     ["Input:", r.input],
                     ["Expected:", r.expected],
                     ["Got:", r.got]
                 ].forEach(function (pair) {
-                    var row = new HBox({ alignItems: "Start" }).addStyleClass("testRow");
-                    row.addItem(new Text({ text: pair[0] }).addStyleClass("testKey"));
-                    row.addItem(new Text({ text: pair[1] }).addStyleClass(r.pass || pair[0] !== "Got:" ? "testVal" : "testValFail"));
+                    var row = new sap.m.HBox({ alignItems: "Start" }).addStyleClass("testRow");
+                    row.addItem(new sap.m.Text({ text: pair[0] }).addStyleClass("testKey"));
+                    row.addItem(new sap.m.Text({ text: pair[1] }).addStyleClass(r.pass || pair[0] !== "Got:" ? "testVal" : "testValFail"));
                     body.addItem(row);
                 });
                 block.addItem(body);
-
                 container.addItem(block);
             });
 
             container.setVisible(true);
 
-            // Summary
+            // Render aggregated status summary layout
             var summary = view.byId("testSummaryStatus");
             var total = results.length;
             if (passed === total) {
                 summary.setText("All " + total + " tests passed");
                 summary.setState("Success");
-                MessageToast.show("All " + total + " test cases passed!");
+                sap.m.MessageToast.show("All " + total + " test cases passed!");
             } else {
                 summary.setText((total - passed) + " / " + total + " tests failed");
                 summary.setState("Error");
-                MessageToast.show((total - passed) + " test case(s) failed");
+                sap.m.MessageToast.show((total - passed) + " test case(s) failed");
             }
             view.byId("testSummary").setVisible(true);
         },
 
-        // ─────────────────────────────────────────────────
-        //  SUBMIT  — real Gemini analysis
-        // ─────────────────────────────────────────────────
-        onSubmit: function () {
-            var idx = this._state.getProperty("/currentIndex");
-            var lang = this._state.getProperty("/currentLang");
-            var skill = this._state.getProperty("/skill") || "intermediate";
-            var q = this._questions[idx];
-            var code = this.getView().byId("codeEditor").getValue().trim();
+        // ─────────────────────────────────────────────────────────────────────────────
+        // 1. DYNAMIC SUBMIT FUNCTION
+        // ─────────────────────────────────────────────────────────────────────────────
+        onSubmit: async function () {
+            var view = this.getView();
+            var submitBtn = view.byId("submitBtn");
 
-            if (!code || code === q.starter[lang]) {
-                MessageToast.show("Write your solution before submitting!");
+            // 1. Double-click Guard Layer: Prevents spamming requests while running
+            if (!submitBtn.getEnabled()) return;
+            
+            submitBtn.setText("⏳ Evaluating...");
+            submitBtn.setEnabled(false);
+
+            var idx = this._state.getProperty("/currentIndex");
+            var q = this._questions ? this._questions[idx] : null;
+
+            // 2. EMPTY-DATA GUARD: Block submission if data isn't loaded ("Q 1 of 0" bug fix)
+            if (!q || Object.keys(q).length === 0) {
+                sap.m.MessageToast.show("Question data is still loading or invalid. Please refresh the page!");
+                submitBtn.setText("✓ Submit");
+                submitBtn.setEnabled(true);
                 return;
             }
 
-            var view = this.getView();
-            var submitBtn = view.byId("submitBtn");
-            submitBtn.setText("⏳ Evaluating...");
-            submitBtn.setEnabled(false);
+            var lang = this._state.getProperty("/currentLang") || "JavaScript";
+            var code = view.byId("codeEditor").getValue().trim();
+            var sStarterCode = q.starter && q.starter[lang] ? q.starter[lang].trim() : "";
+
+            // Validate that the user actually wrote some code
+            if (!code || code === sStarterCode) {
+                sap.m.MessageToast.show("Write your solution before submitting!");
+                submitBtn.setText("✓ Submit");
+                submitBtn.setEnabled(true);
+                return;
+            }
+
+            // 3. STRICT LOCAL RUNTIME VALIDATION GUARD
+            var localTestResults = [];
+            var allLocalTestsPassed = true;
+
+            try {
+                localTestResults = await this._simulateTestResults(q);
+                allLocalTestsPassed = localTestResults.every(function (r) { return r.pass; });
+            } catch (e) {
+                allLocalTestsPassed = false;
+            }
+
+            // Stop execution early if their code breaks the basic example cases locally
+            if (!allLocalTestsPassed && lang === "JavaScript") {
+                view.byId("outputPlaceholder").setVisible(false);
+                view.byId("runningIndicator").setVisible(false);
+                this._renderTestResults(localTestResults, q);
+
+                sap.m.MessageToast.show("Code fails local validation tests. Fix errors before submitting!");
+                submitBtn.setText("✓ Submit");
+                submitBtn.setEnabled(true);
+                return;
+            }
+
+            // Adjust visibility flags for the submission run phase
             view.byId("outputPlaceholder").setVisible(false);
             view.byId("runningIndicator").setVisible(true);
             view.byId("testResultsContainer").setVisible(false);
             view.byId("testSummary").setVisible(false);
-            view.byId("aiFeedbackPanel").setVisible(false);
+
+            var oAiPanel = view.byId("aiFeedbackPanel");
+            if (oAiPanel) oAiPanel.setVisible(false);
+
+            // 4. Map UI Data into the Exact payload structure the backend expects
+            var oPayload = {
+                title: q.title || "",
+                difficulty: q.difficulty || "easy",
+                topic: q.topic || "General",
+                language: lang,
+                question_text: q.description || q.question_text || "",
+                constraints: q.constraints || [],
+                examples: (q.examples || []).map(function (ex) {
+                    return { input: ex.input, output: ex.output, note: ex.note || "" };
+                }),
+                code: code
+            };
 
             var self = this;
 
-            fetch(Api.BASE_URL + "/api/analyze-code", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ code: code, language: lang, question: q, skill: skill })
-            })
-                .then(function (r) { return r.json(); })
-                .then(function (analysis) {
-                    if (analysis.error) { throw new Error(analysis.error); }
+            // 5. Fire your Custom AJAX Wrapper
+            this.ajaxCreateWithJQuery("evaluateStudentCode", {data: oPayload})
+                .then(function (response) {
+                    // Safe check: Parse if response comes back as a raw string stream
+                    if (typeof response === "string") {
+                        try {
+                            response = JSON.parse(response);
+                        } catch (e) {
+                            throw new Error("Invalid response string format received from server.");
+                        }
+                    }
 
+                    // Verify Express payload wrapper architecture
+                    if (!response.success || !response.result) throw new Error(response.error || "Evaluation failed or returned an empty result payload.");
+
+                    // Drill down to your actual evaluation object keys
+                    var analysis = response.result;
+
+                    // Turn off loading animation spinner
                     view.byId("runningIndicator").setVisible(false);
 
-                    // Update question state
+                    // 6. Save data into local state tracker properties
                     q.status = "Submitted";
-                    q.aiScore = analysis.score;
-                    q.aiVerdict = analysis.verdict;
+                    q.aiScore = analysis.correctnessScore !== undefined ? analysis.correctnessScore : 0;
+
+                    // Build a highly-professional, styled HTML presentation layout
                     q.aiFeedback = [
-                        "<strong>Correctness:</strong> " + analysis.correctness,
-                        "<br><br><strong>Time Complexity:</strong> " + analysis.timeComplexity,
-                        "<br><strong>Space Complexity:</strong> " + analysis.spaceComplexity,
-                        "<br><br><strong>Code Quality:</strong> " + analysis.codeQuality,
-                        "<br><br><strong>Summary:</strong> " + analysis.summary
+                        "<div style='font-size: 1.1rem; margin-bottom: 8px;'><strong>Evaluation Summary:</strong></div>",
+                        "<p style='color: #555; line-height: 1.4; margin-bottom: 12px;'>" + (analysis.detailedFeedback || "No detailed breakdown summary provided.") + "</p>",
+                        "<hr style='border: 0; border-top: 1px solid #e5e5e5; margin: 12px 0;'>",
+                        "<table style='width: 100%; border-collapse: collapse; font-size: 0.95rem;'>",
+                        "  <tr>",
+                        "    <td style='padding: 6px 0; color: #666; width: 40%;'><strong>Time Complexity:</strong></td>",
+                        "    <td style='padding: 6px 0; font-family: monospace; font-weight: bold; color: #004085;'>" + (analysis.timeComplexity || "Not Provided") + "</td>",
+                        "  </tr>",
+                        "  <tr>",
+                        "    <td style='padding: 6px 0; color: #666;'><strong>Space Complexity:</strong></td>",
+                        "    <td style='padding: 6px 0; font-family: monospace; font-weight: bold; color: #004085;'>" + (analysis.spaceComplexity || "Not Provided") + "</td>",
+                        "  </tr>",
+                        "</table>"
                     ].join("");
-                    q.aiSuggestions = (analysis.improvements || []).concat(
+
+                    // Collate weaknesses and strengths into suggestions list
+                    q.aiSuggestions = (analysis.weaknesses || []).map(function (w) { return "⚠ " + w; }).concat(
                         (analysis.strengths || []).map(function (s) { return "✓ " + s; })
                     );
 
-                    // Render test results from Gemini
-                    var testResults = (analysis.testResults || q.examples.map(function (ex) {
-                        return { input: ex.input, expected: ex.output, got: ex.output, pass: true, time: Math.floor(Math.random() * 50 + 10) };
-                    })).map(function (t) {
-                        return {
-                            input: t.input, expected: t.expected,
-                            got: t.pass ? t.expected : (t.got || "incorrect"),
-                            pass: t.pass,
-                            time: t.time || Math.floor(Math.random() * 50 + 10)
-                        };
-                    });
-                    self._renderTestResults(testResults, q);
+                    // Update the lower output pane test list representation
+                    self._renderTestResults(localTestResults, q);
 
-                    // AI feedback panel
-                    view.byId("aiScoreTitle").setText(String(analysis.score));
-                    var verdict = view.byId("aiVerdictStatus");
-                    verdict.setText(analysis.verdict);
-                    verdict.setState(analysis.verdict === "Pass" ? "Success" : "Error");
-                    view.byId("aiFeedbackText").setHtmlText(q.aiFeedback);
+                    // 7. Update UI Text Fields safely with real server values
+                    if (view.byId("aiScoreTitle")) view.byId("aiScoreTitle").setText(q.aiScore + " / 10");
 
+                    if (view.byId("aiFeedbackText")) view.byId("aiFeedbackText").setHtmlText(q.aiFeedback);
+
+                    // Rebuild Suggestions Box natively using sap.m elements & icons
                     var sugBox = view.byId("aiSuggestionsContainer");
-                    sugBox.destroyItems();
-                    q.aiSuggestions.forEach(function (s) {
-                        var sugRow = new HBox({ alignItems: "Center" }).addStyleClass("sugRow");
-                        sugRow.addItem(new Icon({ src: "sap-icon://chevron-phase" }).addStyleClass("sugIcon"));
-                        sugRow.addItem(new Text({ text: s }).addStyleClass("sugText"));
-                        sugBox.addItem(sugRow);
-                    });
+                    if (sugBox) {
+                        sugBox.destroyItems();
+                        q.aiSuggestions.forEach(function (s) {
+                            var isWarning = s.startsWith("⚠");
+                            var sStyle = isWarning ? "margin-left: 8px; font-weight: 500; color: #bb0000;" : "margin-left: 8px; color: #007000;";
+                            var sIcon = isWarning ? "sap-icon://alert" : "sap-icon://accept";
+                            var sIconColor = isWarning ? "Critical" : "Positive";
 
-                    view.byId("aiFeedbackPanel").setVisible(true);
+                            var sugRow = new sap.m.HBox({
+                                alignItems: "Center",
+                                class: "sapUiTinyMarginBottom"
+                            });
+
+                            sugRow.addItem(new sap.ui.core.Icon({ src: sIcon, color: sIconColor }));
+                            sugRow.addItem(new sap.m.FormattedText().setHtmlText("<span style='" + sStyle + "'>" + s.substring(2) + "</span>"));
+                            sugBox.addItem(sugRow);
+                        });
+                    }
+
+                    // Display the freshly populated AI feedback canvas panel
+                    if (oAiPanel) {
+                        oAiPanel.setVisible(true);
+                    }
+
+                    // 8. Sync Progress Elements across upper navigation bar components
                     self._updateDots();
 
                     var statusBadge = view.byId("statusBadge");
-                    statusBadge.setText("Submitted");
-                    statusBadge.setState("Success");
+                    if (statusBadge) {
+                        statusBadge.setText("Submitted");
+                        statusBadge.setState(q.aiScore >= 4 ? "Success" : "Error");
+                    }
 
-                    submitBtn.setText("✓ Submit");
-                    submitBtn.setEnabled(true);
                     self._updateProgress();
+                    sap.m.MessageToast.show("Evaluation processing complete!");
 
-                    MessageToast.show("Submitted! AI Score: " + analysis.score + "/10 — " + analysis.verdict);
+                    // FIXED: Save ONLY the current question answer instead of looping all
+                    return self.saveCurrentCandidateAnswer(q, code);
+                })
+                .then(function () {
+                    // Finally, commit total aggregated balance metrics down to TestAttempt table
+                    return self.UpdateTestAttempt("In Progress");
+                })
+                .then(function () {
+                    sap.m.MessageToast.show("All solution progress successfully secured to DB!");
                 })
                 .catch(function (err) {
                     view.byId("runningIndicator").setVisible(false);
+                    var sErrorMsg = err.message || err.responseText || "An unexpected networking issue occurred.";
+                    sap.m.MessageToast.show("Submission failed: " + sErrorMsg);
+                    console.error(err);
+                })
+                .then(function () {
+                    // 9. ALWAYS unlock submit button state regardless of process execution paths
                     submitBtn.setText("✓ Submit");
                     submitBtn.setEnabled(true);
-                    MessageToast.show("AI analysis failed: " + err.message);
                 });
         },
 
+        UpdateTestAttempt: function (status) {
+            var oSession = this.getOwnerComponent().getModel("session");
+
+            // For a coding test, calculating aggregated metrics across all attempted questions
+            var iTotalQuestions = this._questions ? this._questions.length : 0;
+            var iTotalScore = 0;
+
+            if (this._questions) {
+                this._questions.forEach(function (q) {
+                    iTotalScore += q.aiScore ? parseFloat(q.aiScore) : 0;
+                });
+            }
+
+            var iMaxPossiblePoints = iTotalQuestions * 10;
+            var iCalculatedPercentage = iMaxPossiblePoints > 0 ? ((iTotalScore / iMaxPossiblePoints) * 100).toFixed(2) : 0;
+
+            var oPayload = {
+                status: status, // "In Progress" or final status if terminating test
+                submitted_at: new Date().toISOString(),
+                total_marks: iTotalScore,
+                score: iCalculatedPercentage,
+                result_status: iCalculatedPercentage >= 40 ? "Pass" : "Fail"
+            };
+
+            var requestData = {
+                filters: {
+                    id: oSession.getProperty("/attemptId")
+                },
+                data: oPayload
+            };
+
+            return this.ajaxUpdateWithJQuery("TestAttempt", requestData)
+                .then(function (response) {
+                    return response;
+                })
+                .catch(function (error) {
+                    throw error;
+                });
+        },
+
+        // FIXED FUNCTION NAME & APPROACH: Focuses only on the submitted question to prevent duplicate rows
+        saveCurrentCandidateAnswer: function (oQuestion, sCurrentCode) {
+            var oSession = this.getOwnerComponent().getModel("session");
+            var attemptId = oSession.getProperty("/attemptId");
+            var lang = this._state.getProperty("/currentLang") || "JavaScript";
+
+            var oPayload = {
+                attempt_id: attemptId,
+                question_id: oQuestion.id,
+                marks_awarded: oQuestion.aiScore || 0,
+                submitted_code: sCurrentCode || "",
+                language: lang,
+                ai_feedback: oQuestion.aiFeedback || "",
+                ai_score: oQuestion.aiScore || 0,
+                code_status: oQuestion.status || "Submitted"
+            };
+
+            // NOTE: If your backend framework uses Upsert logic (Update if exists, else insert), 
+            // make sure your standard endpoint maps this using primary keys (attempt_id + question_id)
+            return this.ajaxCreateWithJQuery("CandidateAnswers", {
+                data: oPayload
+            })
+                .then(function (response) {
+                    return response;
+                })
+                .catch(function (error) {
+                    throw error;
+                });
+        },
+        // =========================================================================
+        // RUN TESTS BUTTON ACTION HANDLER (PROMISE THEN VERSION)
+        // =========================================================================
+        onRunTestsButtonPress: async function () {
+            var view = this.getView();
+            var q = this._questions[this._state.getProperty("/currentIndex")];
+
+            view.byId("outputPlaceholder").setVisible(false);
+            view.byId("runningIndicator").setVisible(true);
+
+            // Call the async function and extract the data inside .then()
+            await this._simulateTestResults(q)
+                .then(function (aFinalResults) {
+                    this._renderTestResults(aFinalResults, q);
+                }.bind(this))
+                .catch(function (oError) {
+                    console.error(oError);
+                })
+                .finally(function () {
+                    view.byId("runningIndicator").setVisible(false);
+                });
+        },
+
+        _simulateTestResults: async function (q) {
+            var view = this.getView();
+            var code = view.byId("codeEditor").getValue().trim();
+            var lang = this._state.getProperty("/currentLang") || "JavaScript";
+            var aExamples = q.examples || q.options || [];
+
+            // DYNAMIC RESOLUTION: Auto-extract the target function name from the editor source template
+            var functionName = q.functionName || q.entryPoint;
+            if (!functionName) {
+                if (lang === "JavaScript") {
+                    var oVarMatch = code.match(/(?:var|let|const)\s+([a-zA-Z0-9_]+)\s*=\s*function/);
+
+                    if (oVarMatch) {
+                        functionName = oVarMatch[1];
+                    } else {
+                        // 2. Fallback to classic style declaration: function name(
+                        var oClassicMatch = code.match(/function\s+([a-zA-Z0-9_]+)\s*\(/);
+                        functionName = oClassicMatch ? oClassicMatch[1] : "solution";
+                    }
+                } else if (lang === "Python") {
+                    var oMatch = code.match(/def\s+([a-zA-Z0-9_]+)\s*\(/);
+                    functionName = oMatch ? oMatch[1] : "solution";
+                } else if (lang === "Java") {
+                    var oMatch = code.match(/(?:public|protected|private|static|\s) +[\w\<\>\[\]]+\s+([a-zA-Z0-9_]+)\s*\(/);
+                    functionName = oMatch ? oMatch[1] : "solution";
+                }
+            }
+
+            // Prepare unified payload object structure for ALL runtime engine environments
+            var oPayload = {
+                title: q.title || "Coding Challenge",
+                language: lang,
+                code: code,
+                functionName: functionName,
+                cases: aExamples.map(function (ex) {
+                    var oNote = ex.note && typeof ex.note === "object" ? ex.note : ex;
+                    return {
+                        input: oNote.input,
+                        output: oNote.output
+                    };
+                })
+            };
+
+            // =========================================================================
+            // UNIFIED ASYNC/AWAIT PIPELINE FOR ALL LANGUAGES
+            // =========================================================================
+            try {
+                // Await the response array straight from the wrapper utility call
+                var aBackendResults = await this.ajaxCreateWithJQuery("run", {
+                    data: oPayload
+                });
+
+                // Return the clean matrix data array [ {input, expected, got, pass} ]
+                return aBackendResults;
+
+            } catch (error) {
+                // Fallback row error mapping grid if connection drops or environment is unreachable
+                var sMsg = error.responseText || error.message || "Failed to reach compilation service.";
+
+                return aExamples.map(function (ex) {
+                    var oNote = ex.note && typeof ex.note === "object" ? ex.note : ex;
+                    return {
+                        input: oNote.input,
+                        expected: oNote.output,
+                        got: "RuntimeError: " + sMsg,
+                        pass: false,
+                        time: 0
+                    };
+                });
+            }
+        },
         // ─────────────────────────────────────────────────
         //  SUBMIT ALL (top bar)
         // ─────────────────────────────────────────────────

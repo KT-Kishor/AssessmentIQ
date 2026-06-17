@@ -74,7 +74,7 @@ sap.ui.define([
                 // Round 1 - Submitted
                 if (sRound1Status === "submitted") {
                     oData.round1.visible = false;
-                    oData.round1.status = "submitted";
+                    oData.round1.status = "Completed";
                 }
 
                 // Round 1 - Passed -> Unlocks Round 2
@@ -97,7 +97,7 @@ sap.ui.define([
                 if (sRound2Status === "submitted") {
                     oData.round2.visible = false;
                     oData.round2.enabled = false;
-                    oData.round2.status = "submitted";
+                    oData.round2.status = "Completed";
                 }
 
                 oRoundModel.setData(oData);
@@ -111,7 +111,28 @@ sap.ui.define([
         },
 
         onStartProgramming: function() {
-            this.getOwnerComponent().getRouter().navTo("view1");
+            var oPage = this.byId("homePage");
+            oPage.setBusy(true);
+
+            var oSession = this.getOwnerComponent().getModel("session");
+
+            var oPayload = {
+                candidate_id: oSession.getProperty("/candidates_id"),
+                test_id: 2,
+                status: "in_progress"
+            };
+
+            this.ajaxCreateWithJQuery("TestAttempt", {
+                data: oPayload
+            }).then(function(response) {
+                oSession.setProperty("/attemptId", response?.data?.id || response?.data?.results?.insertId);
+                oPage.setBusy(false);
+                this.getOwnerComponent().getRouter().navTo("view1");
+            }.bind(this)).catch(function() {
+                oPage.setBusy(false);
+                sap.m.MessageBox.error("Unable to start test.");
+            });
+        
         },
 
         QuestionsReadCall: function(testId, modelName) {

@@ -214,7 +214,7 @@ sap.ui.define([
                     if (this.oCameraDialog) {
                         this.oCameraDialog.close();
                     }
-                    this._enableFullscreen();
+                    // this._enableFullscreen();
                     this.getOwnerComponent().getRouter().navTo("test");
                 }.bind(this)).catch(function() {
                     sap.ui.core.BusyIndicator.hide();

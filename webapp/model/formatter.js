@@ -16,6 +16,8 @@ sap.ui.define([], function () {
                     return "Information";  // Blue
                 case "submitted":
                     return "Success";      // Green
+                case "completed":
+                    return "Success";      // Green
                 case "locked":
                     return "Error";        // Red
                 default:
