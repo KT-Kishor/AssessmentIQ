@@ -102,7 +102,7 @@
 								</HBox>
 							</VBox>
 							<HBox alignItems="Center" justifyContent="Center" class="homeRoundFooter">
-								<Button text="{roundModel>/round2/text}" type="Emphasized" icon="sap-icon://play" press="onStartProgramming" class="homeStartBtn homeStartBtn--programming"/>
+								<Button text="{roundModel>/round2/text}" type="Emphasized" icon="sap-icon://play" press="onStartProgramming" class="homeStartBtn homeStartBtn--programming" visible="{roundModel>/round2/visible}" enabled="{roundModel>/round2/enabled}"/>
 							</HBox>
 						</VBox>
 						<!--  Round 3: Managerial  -->
