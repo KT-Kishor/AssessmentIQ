@@ -91,14 +91,40 @@ sap.ui.define([
             }).then(function(response) {
                 oSession.setProperty("/attemptId", response?.data?.results?.insertId);
 
-                // Open Camera Dialog (busy indicator stays on)
-                this.openCameraDialog();
+                // Check if the device actually has a camera before prompting
+                this._checkCameraAvailability().then(function(bHasCamera) {
+                    if (bHasCamera) {
+                        // Open Camera Dialog if camera is available
+                        this.openCameraDialog();
+                    } else {
+                        // Clear busy indicator and bypass camera workflow entirely
+                        sap.ui.core.BusyIndicator.hide();
+                        // this._enableFullscreen();
+                        this.getOwnerComponent().getRouter().navTo("test");
+                    }
+                }.bind(this));
 
             }.bind(this)).catch(function() {
                 // 2. Hide busy indicator if the AJAX call fails
                 sap.ui.core.BusyIndicator.hide(); 
                 sap.m.MessageBox.error("Unable to start test.");
             });
+        },
+
+        _checkCameraAvailability: function() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+                return Promise.resolve(false);
+            }
+
+            return navigator.mediaDevices.enumerateDevices()
+                .then(function(aDevices) {
+                    return aDevices.some(function(oDevice) {
+                        return oDevice.kind === "videoinput";
+                    });
+                })
+                .catch(function() {
+                    return false;
+                });
         },
 
         openCameraDialog: function() {
