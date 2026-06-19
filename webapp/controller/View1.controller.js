@@ -53,7 +53,7 @@ sap.ui.define([
             // and so re-enabling is a one-line uncomment when you're ready.
             this._boundFullscreenChange = this._onFullscreenChange.bind(this);
             this._boundVisibilityChange = this._onVisibilityChange.bind(this);
-            this._boundWindowBlur       = this._onWindowBlur.bind(this);
+            this._boundWindowBlur = this._onWindowBlur.bind(this);
 
             // document.addEventListener("fullscreenchange",       this._boundFullscreenChange);
             // document.addEventListener("webkitfullscreenchange", this._boundFullscreenChange);
@@ -255,7 +255,7 @@ sap.ui.define([
             this._saveCurrentCode();
 
             var idx = this._state.getProperty("/currentIndex");
-            var q   = this._questions ? this._questions[idx] : null;
+            var q = this._questions ? this._questions[idx] : null;
             var lang = this._state.getProperty("/currentLang") || "JavaScript";
             var code = view.byId("codeEditor") ? view.byId("codeEditor").getValue().trim() : "";
 
@@ -421,12 +421,7 @@ sap.ui.define([
             if (!attemptId || !oQuestion || !oQuestion.id) return false;
 
             try {
-                var aResults = await this.ajaxReadWithJQuery("CandidateAnswers", {
-                    filters: {
-                        attempt_id: attemptId,
-                        question_id: oQuestion.id
-                    }
-                });
+                var aResults = await this.ajaxReadWithJQuery("CandidateAnswers", { attempt_id: attemptId, question_id: oQuestion.id });
 
                 // ── Stale-response guard ──
                 // If the candidate has moved to a different question while this
@@ -437,10 +432,10 @@ sap.ui.define([
                 }
 
                 var submitBtn = view.byId("submitBtn");
-                var bExists = Array.isArray(aResults) && aResults.length > 0;
+                var bExists = Array.isArray(aResults?.data) && aResults.data.length > 0;
 
                 if (bExists) {
-                    var oExisting = aResults[0];
+                    var oExisting = aResults?.data[0];
 
                     // Sync local question state from the saved record
                     oQuestion.status = "Submitted";
@@ -755,6 +750,7 @@ sap.ui.define([
                                         title: "Assessment Submitted Successfully",
                                         actions: [sap.m.MessageBox.Action.OK],
                                         onClose: function (oAction) {
+                                            this.getOwnerComponent().getRouter().navTo("setup");
                                             // Optional: Redirect candidate back to summary portal dashboard
                                         }
                                     }
@@ -954,8 +950,66 @@ sap.ui.define([
                     timerBtn.removeStyleClass("timerBtn");
                     timerBtn.addStyleClass("timerBtnWarn");
                 }
-                if (secs === 0) { MessageToast.show("Time is up! Assessment ended."); }
+                if (secs === 0) { self._onTimeUp(); }
             }, 1000);
+        },
+
+        _onTimeUp: function () {
+            // Guard against double-firing (e.g. if a fullscreen/blur handler
+            // also tries to auto-submit around the same tick)
+            if (this._testSubmitted) { return; }
+
+            this._testSubmitted = true;
+            this._testDialogOpen = true; // suppress the fullscreen/blur warning dialogs
+
+            if (this._timerInterval) {
+                clearInterval(this._timerInterval);
+                this._timerInterval = null;
+            }
+
+            this._exitFullscreen();
+            this._saveCurrentCode(); // persist whatever is in the editor right now
+
+            var self = this;
+            var view = this.getView();
+            var idx = this._state.getProperty("/currentIndex");
+            var q = this._questions ? this._questions[idx] : null;
+            var code = view.byId("codeEditor") ? view.byId("codeEditor").getValue().trim() : "";
+
+            var pSaveCurrent = Promise.resolve();
+            if (q && q.status !== "Submitted" && code) {
+                q.status = q.aiScore ? q.status : "Submitted";
+                pSaveCurrent = this.saveCurrentCandidateAnswer(q, code).catch(function (err) {
+                    console.error("Failed to save final in-progress answer:", err);
+                });
+            }
+
+            pSaveCurrent
+                .then(function () {
+                    return self.UpdateTestAttempt("submitted");
+                })
+                .then(function () {
+                    sap.m.MessageBox.information(
+                        "Time is up! Your assessment has been submitted automatically. Thank you for attending the interview!",
+                        {
+                            title: "Time's Up",
+                            actions: [sap.m.MessageBox.Action.OK],
+                            onClose: function () {
+                                self._navigateToHome();
+                            }
+                        }
+                    );
+                })
+                .catch(function (err) {
+                    console.error("Failed to finalise attempt on timeout:", err);
+                    // Don't trap the candidate on a dead screen even if the save failed
+                    self._navigateToHome();
+                });
+        },
+
+        /** Clears session and routes the candidate out of the test */
+        _navigateToHome: function () {
+            this.getOwnerComponent().getRouter().navTo("setup");
         },
 
         _updateTimerDisplay: function () {

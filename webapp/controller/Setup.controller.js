@@ -1,20 +1,20 @@
 sap.ui.define([
-    "./BaseController", 
+    "./BaseController",
     "sap/m/MessageToast",
     "../model/formatter",
     "sap/ui/model/json/JSONModel" // Explicitly importing JSONModel just in case
-], function(BaseController, MessageToast, Formatter, JSONModel) {
+], function (BaseController, MessageToast, Formatter, JSONModel) {
     "use strict";
 
     return BaseController.extend("sap.com.interview.controller.Setup", {
         Formatter: Formatter,
 
-        onInit: function() {
+        onInit: function () {
             var oRouter = this.getOwnerComponent().getRouter();
             oRouter.getRoute("setup").attachPatternMatched(this._onRouteMatched, this);
         },
 
-        _onRouteMatched: async function() {
+        _onRouteMatched: async function () {
             const oSession = this.getOwnerComponent().getModel("session");
 
             if (!oSession.getProperty("/candidateName")) {
@@ -47,8 +47,10 @@ sap.ui.define([
             this.QuestionsReadCall(2, "oProgrammingModel");
         },
 
-        _loadTestAttempts: async function(candidate_id) {
+        _loadTestAttempts: async function (candidate_id) {
             try {
+                var oPage = this.byId("homePage");
+                oPage.setBusy(true);
                 const filter = { candidate_id: candidate_id };
                 const oResponse = await this.ajaxReadWithJQuery("TestAttempt", filter);
                 const data = oResponse.data || [];
@@ -66,11 +68,11 @@ sap.ui.define([
                     round1: { visible: true, enabled: true, text: "Start Round 1", status: "Pending" },
                     round2: { visible: false, enabled: false, text: "Locked", status: "Locked" }
                 };
-                    
+
                 // Round 1 - In Progress
                 if (sRound1Status === "in_progress") {
                     oData.round1.text = "Continue Round 1";
-                    oData.round1.status = "in_progress"; 
+                    oData.round1.status = "in_progress";
                 }
 
                 // Round 1 - Submitted
@@ -103,16 +105,18 @@ sap.ui.define([
                 }
 
                 oRoundModel.setData(oData);
+                oPage.setBusy(false);
             } catch (e) {
                 console.error("Error loading test attempts:", e);
+                oPage.setBusy(false);
             }
         },
 
-        onStartAptitude: function() {
+        onStartAptitude: function () {
             this.getOwnerComponent().getRouter().navTo("start");
         },
 
-        onStartProgramming: function() {
+        onStartProgramming: function () {
             var oPage = this.byId("homePage");
             oPage.setBusy(true);
 
@@ -126,20 +130,20 @@ sap.ui.define([
 
             this.ajaxCreateWithJQuery("TestAttempt", {
                 data: oPayload
-            }).then(function(response) {
+            }).then(function (response) {
                 oSession.setProperty("/attemptId", response?.data?.id || response?.data?.results?.insertId);
                 oPage.setBusy(false);
                 this.getOwnerComponent().getRouter().navTo("view1");
-            }.bind(this)).catch(function() {
+            }.bind(this)).catch(function () {
                 oPage.setBusy(false);
                 sap.m.MessageBox.error("Unable to start test.");
             });
-        
+
         },
 
-        QuestionsReadCall: function(testId, modelName) {
+        QuestionsReadCall: function (testId, modelName) {
             var oPage = this.byId("homePage");
-            // oPage.setBusy(true);
+            oPage.setBusy(true);
 
             this.ajaxReadWithJQuery("Questions", { test_id: testId })
                 .then(response => {

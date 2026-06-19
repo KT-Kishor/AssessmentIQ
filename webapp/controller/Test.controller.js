@@ -374,15 +374,6 @@ sap.ui.define([
             this._oSubmitDialog.open();
         },
 
-        /**
-         * FIX 7: _doSubmit — single method for ALL submission paths.
-         *
-         * Previously:
-         *   - Submit button:  exitFullscreen + calculate + save + navigate  (inline)
-         *   - Auto timeout:   _doSubmit() but WITHOUT exitFullscreen
-         *
-         * Now both paths call _doSubmit(status) which always exits fullscreen first.
-         */
         _doSubmit: function (sStatus) {
             // Step 1 — exit fullscreen regardless of how we got here
             this._exitFullscreen();
@@ -392,7 +383,7 @@ sap.ui.define([
 
             // Step 3 — persist answers and update attempt
             this.saveCandidateAnswers();
-            this.UpdateTestAttempt(sStatus || "submitted");
+            this.UpdateTestAttempt("submitted");
 
             // Step 4 — navigate to result
             this.getOwnerComponent().getRouter().navTo("result");

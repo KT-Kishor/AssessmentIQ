@@ -89,7 +89,7 @@ sap.ui.define([
             this.ajaxCreateWithJQuery("TestAttempt", {
                 data: oPayload
             }).then(function(response) {
-                oSession.setProperty("/attemptId", response?.data?.results?.insertId);
+                oSession.setProperty("/attemptId", response?.data?.id || response?.data?.results?.insertId);
 
                 // Check if the device actually has a camera before prompting
                 this._checkCameraAvailability().then(function(bHasCamera) {
