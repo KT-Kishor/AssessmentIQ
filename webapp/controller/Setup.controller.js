@@ -41,6 +41,8 @@ sap.ui.define([
 
             await this._loadTestAttempts(candidate_id);
 
+            var oPage = this.byId("homePage");
+            oPage.setBusy(true);
             this.QuestionsReadCall(1, "oQuestionStatsModel");
             this.QuestionsReadCall(2, "oProgrammingModel");
         },
@@ -137,7 +139,7 @@ sap.ui.define([
 
         QuestionsReadCall: function(testId, modelName) {
             var oPage = this.byId("homePage");
-            oPage.setBusy(true);
+            // oPage.setBusy(true);
 
             this.ajaxReadWithJQuery("Questions", { test_id: testId })
                 .then(response => {

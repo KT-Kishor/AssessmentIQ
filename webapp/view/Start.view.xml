@@ -2,23 +2,14 @@
     controllerName="sap.com.interview.controller.Start"
     xmlns:mvc="sap.ui.core.mvc"
     xmlns="sap.m"
-    xmlns:l="sap.ui.layout"
     xmlns:core="sap.ui.core"
     displayBlock="true">
 
-    <Page
-        id="startPage"
-        showHeader="false"
-        class="aiqStartPage">
+    <Page id="startPage" showHeader="false" class="aiqStartPage">
 
-        <ScrollContainer height="100%" width="100%" horizontal="false" vertical="true" class="aiqNoHorizontalScroll">
+        <ScrollContainer height="100%" width="100%" horizontal="false" vertical="false">
 
-            <FlexBox
-                alignItems="Center"
-                justifyContent="Center"
-                direction="Column"
-                fitContainer="true"
-                class="sapUiSmallMargin">
+            <FlexBox alignItems="Center" justifyContent="Center" direction="Column" fitContainer="true">
 
                 <Panel class="aiqStartCard">
 

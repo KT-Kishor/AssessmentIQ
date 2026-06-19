@@ -192,7 +192,7 @@
     box-shadow: 0 2px 20px rgba(15, 43, 91, 0.09) !important;
     max-width: 580px;
     width: 100%;
-    overflow: hidden;
+    overflow: hidden !important;
 }
 
 .aiqStartHero {
@@ -1671,6 +1671,7 @@
   padding: 6px 10px !important;
   height: auto !important;
   min-height: 44px !important;
+  margin-top: 10px !important;
 }
 
 /* Language select */
@@ -1722,10 +1723,12 @@
 
 /* Output area */
 .outputArea.sapMScrollCont {
-  background: #fff !important;
+  background: #ffffff !important;
   border-top: 2px solid #252d40 !important;
+  /* REMOVED: hard max-height limits to allow the component to flex */
+  flex: 1 !important; 
+  height: 100% !important; 
   min-height: 180px !important;
-  max-height: 220px !important;
 }
 
 /* Placeholder */

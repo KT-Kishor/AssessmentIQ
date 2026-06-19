@@ -102,7 +102,7 @@
 								</HBox>
 							</VBox>
 							<HBox alignItems="Center" justifyContent="Center" class="homeRoundFooter">
-								<Button text="{roundModel>/round2/text}" visible="{roundModel>/round2/visible}" enabled="{roundModel>/round2/enabled}" type="Emphasized" icon="sap-icon://play" press="onStartProgramming" class="homeStartBtn homeStartBtn--programming"/>
+								<Button text="{roundModel>/round2/text}" type="Emphasized" icon="sap-icon://play" press="onStartProgramming" class="homeStartBtn homeStartBtn--programming"/>
 							</HBox>
 						</VBox>
 						<!--  Round 3: Managerial  -->
@@ -113,25 +113,25 @@
 								</VBox>
 								<VBox class="homeRoundHeaderText">
 									<Text text="Round 3" class="homeRoundLabel"/>
-									<Title text="Managerial Round" level="H4" class="homeRoundTitle" wrapping="true"/>
+									<Title text="HR and Manager Round" level="H4" class="homeRoundTitle" wrapping="true"/>
 								</VBox>
 								<ObjectStatus inverted="true" text="Locked"	state="Error"/>
 							</HBox>
 							<VBox class="homeRoundBody">
-								<Text text="Demonstrate leadership thinking, situational judgement, and communication skills through scenario-based questions." class="homeRoundDesc"/>
+								<Text text="A one-on-one discussion with HR and the hiring manager to evaluate your cultural fit, career goals, professional attitude, and overall suitability for the role." class="homeRoundDesc"/>
 								<VBox class="homeRoundMeta">
 									<HBox alignItems="Center" class="homeMetaRow">
 										<core:Icon src="sap-icon://time-entry-request" class="homeMetaIcon"/>
-										<Text text="45 Minutes" class="homeMetaText"/>
+										<Text text="1 Hour" class="homeMetaText"/>
 									</HBox>
-									<HBox alignItems="Center" class="homeMetaRow">
+									<!-- <HBox alignItems="Center" class="homeMetaRow">
 										<core:Icon src="sap-icon://question-mark" class="homeMetaIcon"/>
 										<Text text="15 Questions" class="homeMetaText"/>
 									</HBox>
 									<HBox alignItems="Center" class="homeMetaRow">
 										<core:Icon src="sap-icon://bar-chart" class="homeMetaIcon"/>
 										<Text text="Scenario Based" class="homeMetaText"/>
-									</HBox>
+									</HBox> -->
 								</VBox>
 								<HBox class="homeRoundTopics" wrap="Wrap">
 									<Text text="Leadership" class="homeTopicTag homeTopicTag--purple"/>

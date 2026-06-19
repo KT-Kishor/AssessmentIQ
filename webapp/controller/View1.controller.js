@@ -1,7 +1,8 @@
 sap.ui.define([
-    "./BaseController", // Import BaseController 
+    "./BaseController",
     "sap/ui/model/json/JSONModel",
     "sap/m/MessageToast",
+    "sap/m/MessageBox",
     "sap/m/VBox",
     "sap/m/HBox",
     "sap/m/Text",
@@ -9,7 +10,7 @@ sap.ui.define([
     "sap/m/ObjectStatus",
     "sap/m/Button",
     "sap/ui/core/Icon",
-], function (BaseController, JSONModel, MessageToast, VBox, HBox, Text, FormattedText, ObjectStatus, Button, Icon) {
+], function (BaseController, JSONModel, MessageToast, MessageBox, VBox, HBox, Text, FormattedText, ObjectStatus, Button, Icon) {
     "use strict";
 
     var EXT_MAP = { JavaScript: "solution.js", Java: "Solution.java", Python: "solution.py" };
@@ -17,32 +18,69 @@ sap.ui.define([
     var STATUS_STATE = { "Submitted": "Success", "In Progress": "Warning", "Not Attempted": "None" };
 
     return BaseController.extend("sap.com.interview.controller.View1", {
+
+        // ─────────────────────────────────────────────────
         //  LIFECYCLE
         // ─────────────────────────────────────────────────
         onInit: function () {
             this._timerInterval = null;
             this._state = this.getOwnerComponent().getModel("state");
 
-            // We will initialize this._questions dynamically inside the route pattern match listener instead.
             this._questions = [];
+
+            // ── Fullscreen state flags (mirrors Test controller pattern) ──
+            this._testSubmitted = false;
+            this._testDialogOpen = false;
+
+            // ── Security: disable right-click, copy, paste, dev shortcuts ──
+            // document.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+            // document.addEventListener("copy",        function (e) { e.preventDefault(); });
+            // document.addEventListener("cut",         function (e) { e.preventDefault(); });
+            // document.addEventListener("paste",       function (e) { e.preventDefault(); });
+            // document.addEventListener("keydown",     function (e) {
+            //     if (e.ctrlKey && ["c","C","x","X","v","V"].indexOf(e.key) !== -1) {
+            //         e.preventDefault();
+            //     }
+            //     // F11 toggles fullscreen manually
+            //     if (e.key === "F11") {
+            //         e.preventDefault();
+            //     }
+            // });
+
+            // ── Security: detect fullscreen exit / tab switch / window blur ──
+            // NOTE: keep these bindings active even while the listeners below
+            // are commented out, so onExit's removeEventListener calls are safe
+            // and so re-enabling is a one-line uncomment when you're ready.
+            this._boundFullscreenChange = this._onFullscreenChange.bind(this);
+            this._boundVisibilityChange = this._onVisibilityChange.bind(this);
+            this._boundWindowBlur       = this._onWindowBlur.bind(this);
+
+            // document.addEventListener("fullscreenchange",       this._boundFullscreenChange);
+            // document.addEventListener("webkitfullscreenchange", this._boundFullscreenChange);
+            // document.addEventListener("visibilitychange",       this._boundVisibilityChange);
+            // window.addEventListener("blur",                     this._boundWindowBlur);
 
             var self = this;
             this.getOwnerComponent().getRouter().getRoute("view1").attachPatternMatched(function () {
 
-                const oSession = self.getOwnerComponent().getModel("session");
+                var oSession = self.getOwnerComponent().getModel("session");
+                if (!oSession.getProperty("/candidateName")) {
+                    return self.getOwnerComponent().getRouter().navTo("login");
+                }
 
-                if (!oSession.getProperty("/candidateName")) return self.getOwnerComponent().getRouter().navTo("login");
+                // Reset flags on every fresh route match
+                self._testSubmitted = false;
+                self._testDialogOpen = false;
 
-                // 1. Fetch the raw payload data from 'oProgrammingModel'
+                // 1. Fetch raw payload from 'oProgrammingModel'
                 var oViewModel = self.getView().getModel("oProgrammingModel");
                 var oRawData = oViewModel ? oViewModel.getData() : null;
                 var aRawQuestions = oRawData && oRawData.Questions ? oRawData.Questions : [];
 
-                // Helper safe JSON parse methods
                 var parseJSON = function (str) { try { return JSON.parse(str || "{}"); } catch (e) { return {}; } };
                 var parseArray = function (str) { try { return JSON.parse(str || "[]"); } catch (e) { return []; } };
 
-                // 2. Transform the raw backend questions into the clean structures your view elements expect
+                // 2. Transform raw questions into clean view structures
                 self._questions = aRawQuestions.map(function (q) {
                     var aExamples = (q.options || []).map(function (opt) {
                         var oNoteObj = parseJSON(opt.note);
@@ -64,25 +102,23 @@ sap.ui.define([
                         constraints: parseArray(q.constraints),
                         examples: aExamples,
                         starter: parseJSON(q.starter_code),
-                        status: "Not Attempted", // Baseline status expected by STATUS_STATE badge object
-                        codeStore: { JavaScript: "", Java: "", Python: "" } // Container to cache user draft inputs
+                        status: "Not Attempted",
+                        codeStore: { JavaScript: "", Java: "", Python: "" }
                     };
                 });
 
-                // 3. Keep your global 'questions' component model synchronized if other views depend on it
+                // 3. Sync global 'questions' component model
                 var oQuestionsComponentModel = self.getOwnerComponent().getModel("questions");
                 if (oQuestionsComponentModel) {
                     oQuestionsComponentModel.setProperty("/items", self._questions);
                 }
 
-                // 4. Reset state controls and kick off UI layout updates
+                // 4. Reset state and build UI
                 self._state.setProperty("/currentIndex", 0);
                 self._state.setProperty("/questionLabel", "Q 1 of " + self._questions.length);
 
-                // Dynamically configure timer limit if "Duration" comes directly from the test configuration properties
                 if (oRawData && oRawData.Duration) {
-                    var iSeconds = oRawData.Duration * 60; // converts minutes to seconds
-                    self._state.setProperty("/timerSeconds", iSeconds);
+                    self._state.setProperty("/timerSeconds", oRawData.Duration * 60);
                 }
 
                 self._buildDots();
@@ -90,76 +126,222 @@ sap.ui.define([
 
                 if (self._timerInterval) { clearInterval(self._timerInterval); }
                 self._startTimer();
+
+                // ── Enter fullscreen when the coding test starts ──
+                self._enterFullscreen();
             });
         },
 
         onExit: function () {
             if (this._timerInterval) { clearInterval(this._timerInterval); }
+
+            // Clean up fullscreen and all event listeners
+            this._exitFullscreen();
+            document.removeEventListener("fullscreenchange", this._boundFullscreenChange);
+            document.removeEventListener("webkitfullscreenchange", this._boundFullscreenChange);
+            document.removeEventListener("visibilitychange", this._boundVisibilityChange);
+            window.removeEventListener("blur", this._boundWindowBlur);
+        },
+
+        // ─────────────────────────────────────────────────
+        //  FULLSCREEN HELPERS  (mirrors Test controller)
+        // ─────────────────────────────────────────────────
+
+        /** Request fullscreen across all browser vendors */
+        _enterFullscreen: function () {
+            var elem = document.documentElement;
+            if (elem.requestFullscreen) { elem.requestFullscreen(); }
+            else if (elem.webkitRequestFullscreen) { elem.webkitRequestFullscreen(); }
+            else if (elem.msRequestFullscreen) { elem.msRequestFullscreen(); }
+        },
+
+        /** Exit fullscreen safely, checking element exists first */
+        _exitFullscreen: function () {
+            if (document.fullscreenElement ||
+                document.webkitFullscreenElement ||
+                document.msFullscreenElement) {
+                if (document.exitFullscreen) { document.exitFullscreen(); }
+                else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
+                else if (document.msExitFullscreen) { document.msExitFullscreen(); }
+            }
+        },
+
+        /**
+         * Fires when Esc is pressed or browser exits fullscreen.
+         * Guarded by _testSubmitted so it does NOT fire on a valid submit.
+         */
+        _onFullscreenChange: function () {
+            if (!document.fullscreenElement &&
+                !document.webkitFullscreenElement &&
+                !this._testSubmitted &&
+                !this._testDialogOpen) {
+                this._autoSubmitTest("You have exited fullscreen mode.");
+            }
+        },
+
+        _onVisibilityChange: function () {
+            if (document.hidden &&
+                !this._testSubmitted &&
+                !this._testDialogOpen) {
+                this._autoSubmitTest("Tab was switched or window was minimized.");
+            }
+        },
+
+        _onWindowBlur: function () {
+            if (!this._testSubmitted &&
+                !this._testDialogOpen) {
+                this._autoSubmitTest("Window lost focus.");
+            }
+        },
+
+        /**
+         * Warns the user and optionally force-submits.
+         * If the user clicks No → re-enter fullscreen.
+         */
+        _autoSubmitTest: function (sMessage) {
+            if (this._testDialogOpen) { return; }
+
+            this._testDialogOpen = true;
+            var self = this;
+
+            MessageBox.show(
+                sMessage + "\n\nDo you want to submit the test now?",
+                {
+                    icon: MessageBox.Icon.WARNING,
+                    title: "Warning",
+                    actions: [MessageBox.Action.YES, MessageBox.Action.NO],
+
+                    onClose: function (oAction) {
+                        self._testDialogOpen = false;
+
+                        if (oAction === MessageBox.Action.YES) {
+                            self._testSubmitted = true;
+                            // Exit fullscreen then finalise
+                            self._exitFullscreen();
+                            self.onSubmitAll();          // existing finalise logic
+                        } else {
+                            // User wants to continue → put them back in fullscreen
+                            setTimeout(function () {
+                                self._enterFullscreen();
+                            }, 300);
+                        }
+                    }
+                }
+            );
+        },
+
+        /**
+         * Force-finalises the ENTIRE test attempt regardless of which question
+         * the candidate is currently on. Used by the anti-cheat auto-submit flow
+         * (fullscreen exit / tab switch / window blur) and can also be wired to
+         * the "Submit All" toolbar button.
+         *
+         * Unlike onSubmit() (which submits ONE question), this:
+         *   1. Saves the candidate's current in-progress code for the active
+         *      question (even if it hasn't been run/validated) so nothing is lost.
+         *   2. Marks the TestAttempt as submitted via UpdateTestAttempt.
+         *   3. Shows a single confirmation dialog and stops the timer.
+         */
+        onSubmitAll: function () {
+            var self = this;
+            var view = this.getView();
+
+            if (this._timerInterval) {
+                clearInterval(this._timerInterval);
+                this._timerInterval = null;
+            }
+
+            // Persist whatever code is currently in the editor before finalising
+            this._saveCurrentCode();
+
+            var idx = this._state.getProperty("/currentIndex");
+            var q   = this._questions ? this._questions[idx] : null;
+            var lang = this._state.getProperty("/currentLang") || "JavaScript";
+            var code = view.byId("codeEditor") ? view.byId("codeEditor").getValue().trim() : "";
+
+            var pSaveCurrent = Promise.resolve();
+
+            // Only attempt to save the current question's answer if it hasn't
+            // already been submitted and there's actual code to save.
+            if (q && q.status !== "Submitted" && code) {
+                q.status = q.aiScore ? q.status : "Submitted";
+                pSaveCurrent = this.saveCurrentCandidateAnswer(q, code).catch(function (err) {
+                    // Don't block finalisation if this single save fails —
+                    // log it, the TestAttempt-level submit below still proceeds.
+                    console.error("Failed to save final in-progress answer:", err);
+                });
+            }
+
+            pSaveCurrent
+                .then(function () {
+                    return self.UpdateTestAttempt("submitted");
+                })
+                .then(function () {
+                    self._testSubmitted = true;
+
+                    sap.m.MessageBox.success(
+                        "Your assessment has been submitted. Thank you for attending the interview! Our experts will evaluate your code and get back to you soon.",
+                        {
+                            title: "Assessment Submitted Successfully",
+                            actions: [sap.m.MessageBox.Action.OK]
+                        }
+                    );
+                })
+                .catch(function (err) {
+                    var sErrorMsg = err && (err.message || err.responseText) || "An unexpected error occurred while submitting.";
+                    sap.m.MessageToast.show("Submission failed: " + sErrorMsg);
+                    console.error(err);
+                });
         },
 
         // ─────────────────────────────────────────────────
         //  QUESTION LOADING
         // ─────────────────────────────────────────────────
         _loadQuestion: function (index) {
-            debugger;
             var q = this._questions[index];
             var lang = this._state.getProperty("/currentLang") || "JavaScript";
             var view = this.getView();
 
-            if (!q) {
-                sap.m.MessageToast.show("Error: Selected question context is unavailable.");
-                return;
-            }
+            if (!q) return sap.m.MessageToast.show("Error: Selected question context is unavailable.");
 
             // 1. Core State Properties Sync
             this._state.setProperty("/currentIndex", index);
             this._state.setProperty("/questionLabel", "Q " + (index + 1) + " of " + this._questions.length);
             this._updateProgress();
 
-            // 2. Header Meta Properties Initialization
+            // 2. Header Meta Properties
             view.byId("qNumLabel").setText("Question " + (index + 1) + " of " + this._questions.length);
             view.byId("qTitle").setText(q.title || "Coding Challenge");
 
-            // Difficulty Badges Control
             var sDifficulty = q.difficulty || "easy";
             var diffBadge = view.byId("diffBadge");
             diffBadge.setText(sDifficulty);
-            if (typeof DIFF_STATE !== "undefined") {
-                diffBadge.setState(DIFF_STATE[sDifficulty] || "None");
-            }
+            if (typeof DIFF_STATE !== "undefined") diffBadge.setState(DIFF_STATE[sDifficulty] || "None");
+
             diffBadge.removeStyleClass("badge-easy badge-medium badge-hard");
             diffBadge.addStyleClass("badge-" + sDifficulty.toLowerCase());
 
-            // Status Badges
             var sStatus = q.status || "Unsolved";
             var statusBadge = view.byId("statusBadge");
             statusBadge.setText(sStatus);
-            if (typeof STATUS_STATE !== "undefined") {
-                statusBadge.setState(STATUS_STATE[sStatus] || "None");
-            }
+            if (typeof STATUS_STATE !== "undefined") statusBadge.setState(STATUS_STATE[sStatus] || "None");
 
             view.byId("topicBadge").setText(q.topic || "General");
 
-            // 3. FIX: Handle problem description text gracefully across payload variations
+            // 3. Problem description
             var sProblemText = q.question_text || q.description || q.desc || "";
             view.byId("qDesc").setHtmlText("<p style='line-height:1.5; color:#333;'>" + sProblemText + "</p>");
 
-            // 4. FIX: Safely parse both "examples" and nested "options" layout arrays
+            // 4. Examples
             var exBox = view.byId("examplesContainer");
             exBox.destroyItems();
 
-            // Normalize raw options data to a standard array format
             var aRawExamples = q.examples || q.options || [];
-
             aRawExamples.forEach(function (ex, i) {
                 var rows = new sap.m.VBox().addStyleClass("exampleBlock");
                 rows.addItem(new sap.m.Text({ text: "Example " + (i + 1) }).addStyleClass("exLabel"));
 
-                // Extract data properly, whether flat or nested within an option block
-                var sInputVal = "";
-                var sOutputVal = "";
-                var sNoteVal = "";
-
+                var sInputVal = "", sOutputVal = "", sNoteVal = "";
                 if (ex.note && typeof ex.note === "object") {
                     sInputVal = ex.note.input || "";
                     sOutputVal = ex.note.output || "";
@@ -170,35 +352,28 @@ sap.ui.define([
                     sNoteVal = ex.note || "";
                 }
 
-                // Render Input Row
                 var inRow = new sap.m.HBox();
                 inRow.addItem(new sap.m.Text({ text: "Input:" }).addStyleClass("exKey"));
                 inRow.addItem(new sap.m.Text({ text: sInputVal }).addStyleClass("exVal"));
                 rows.addItem(inRow);
 
-                // Render Output Row
                 var outRow = new sap.m.HBox();
                 outRow.addItem(new sap.m.Text({ text: "Output:" }).addStyleClass("exKey"));
                 outRow.addItem(new sap.m.Text({ text: sOutputVal }).addStyleClass("exVal"));
                 rows.addItem(outRow);
 
-                // Render Explanation Note Row if it exists
-                if (sNoteVal) {
-                    rows.addItem(new sap.m.Text({ text: "// " + sNoteVal }).addStyleClass("exNote"));
-                }
+                if (sNoteVal) rows.addItem(new sap.m.Text({ text: "// " + sNoteVal }).addStyleClass("exNote"));
 
                 exBox.addItem(rows);
             });
 
-            // 5. Constraints Array Safe Iteration
+            // 5. Constraints
             var conBox = view.byId("constraintsContainer");
             conBox.destroyItems();
 
             var aConstraints = q.constraints || [];
             aConstraints.forEach(function (c) {
-                // Safe check: extract string if constraint arrives as an object wrapper
                 var sConstraintText = typeof c === "object" ? (c.text || c.option_text || "") : c;
-
                 if (sConstraintText) {
                     var row = new sap.m.HBox({ alignItems: "Center" }).addStyleClass("constraintRow");
                     row.addItem(new sap.ui.core.Icon({ src: "sap-icon://circle-task-2" }).addStyleClass("constraintBullet"));
@@ -207,11 +382,10 @@ sap.ui.define([
                 }
             });
 
-            // 6. FIX: Resolve code strings accurately across 'starter_code' and 'starter' keys
+            // 6. Code editor
             var oStarterSource = q.starter_code || q.starter || {};
             var oStorageSource = q.codeStore || {};
             var code = oStorageSource[lang] || oStarterSource[lang] || "";
-
             view.byId("codeEditor").setValue(code);
 
             var sExt = "js";
@@ -219,13 +393,94 @@ sap.ui.define([
             else if (lang === "Java") { sExt = "java"; }
             view.byId("fileInfo").setText((typeof EXT_MAP !== "undefined" ? EXT_MAP[lang] : null) || "solution." + sExt);
 
-            // 7. Navigation Buttons State Enforcement
+            // 7. Navigation buttons
             view.byId("prevBtn").setEnabled(index > 0);
             view.byId("nextBtn").setEnabled(index < this._questions.length - 1);
 
-            // Clear previous output views and trigger dots updates
             this._resetOutput();
             this._updateDots();
+
+            // 8. Check if this question was already submitted (CandidateAnswers lookup)
+            // Guarded against race conditions: if the candidate navigates away
+            // before this resolves, the result is discarded instead of being
+            // applied to whatever question is now on screen.
+            this._checkIfAnswerExists(q, index);
+        },
+
+        /**
+         * @param {Object} oQuestion - question object to check
+         * @param {Number} nRequestedIndex - the _currentQuestion index at the
+         *        time this check was kicked off, used to discard stale results
+         *        if the candidate has since navigated to a different question.
+         */
+        _checkIfAnswerExists: async function (oQuestion, nRequestedIndex) {
+            var oSession = this.getOwnerComponent().getModel("session");
+            var attemptId = oSession.getProperty("/attemptId");
+            var view = this.getView();
+
+            if (!attemptId || !oQuestion || !oQuestion.id) return false;
+
+            try {
+                var aResults = await this.ajaxReadWithJQuery("CandidateAnswers", {
+                    filters: {
+                        attempt_id: attemptId,
+                        question_id: oQuestion.id
+                    }
+                });
+
+                // ── Stale-response guard ──
+                // If the candidate has moved to a different question while this
+                // request was in flight, drop the result instead of mutating the
+                // currently-displayed question's button/badge state.
+                if (this._state.getProperty("/currentIndex") !== nRequestedIndex) {
+                    return false;
+                }
+
+                var submitBtn = view.byId("submitBtn");
+                var bExists = Array.isArray(aResults) && aResults.length > 0;
+
+                if (bExists) {
+                    var oExisting = aResults[0];
+
+                    // Sync local question state from the saved record
+                    oQuestion.status = "Submitted";
+                    oQuestion.aiScore = oExisting.ai_score || oExisting.marks_awarded || 0;
+
+                    // Lock the Submit button — already answered
+                    if (submitBtn) {
+                        submitBtn.setText("✓ Submitted");
+                        submitBtn.setEnabled(false);
+                    }
+
+                    // Reflect "Submitted" on the status badge too
+                    var statusBadge = view.byId("statusBadge");
+                    if (statusBadge) {
+                        statusBadge.setText("Submitted");
+                        statusBadge.setState(STATUS_STATE["Submitted"] || "Success");
+                    }
+
+                    // Restore the previously submitted code into the editor
+                    var lang = this._state.getProperty("/currentLang") || "JavaScript";
+                    if (oExisting.submitted_code) {
+                        oQuestion.codeStore[oExisting.language || lang] = oExisting.submitted_code;
+                        view.byId("codeEditor").setValue(oExisting.submitted_code);
+                    }
+
+                    this._updateDots();
+                    this._updateProgress();
+                } else {
+                    // No existing record — make sure Submit button is enabled/normal
+                    if (submitBtn) {
+                        submitBtn.setText("✓ Submit");
+                        submitBtn.setEnabled(true);
+                    }
+                }
+                return bExists;
+            } catch (oErr) {
+                console.error("Failed to check existing CandidateAnswers record:", oErr);
+                // Fail-open: don't block the candidate if the check itself errors out
+                return false;
+            }
         },
 
         _resetOutput: function () {
@@ -234,7 +489,7 @@ sap.ui.define([
             view.byId("runningIndicator").setVisible(false);
             view.byId("testResultsContainer").setVisible(false);
             view.byId("testResultsContainer").destroyItems();
-            view.byId("testSummary").setVisible(false);
+            // view.byId("testSummary").setVisible(false);
         },
 
         // ─────────────────────────────────────────────────
@@ -317,7 +572,7 @@ sap.ui.define([
             view.byId("outputPlaceholder").setVisible(false);
             view.byId("runningIndicator").setVisible(true);
             view.byId("testResultsContainer").setVisible(false);
-            view.byId("testSummary").setVisible(false);
+            // view.byId("testSummary").setVisible(false);
             view.byId("runBtn").setEnabled(false);
 
             var self = this;
@@ -334,9 +589,9 @@ sap.ui.define([
             }, 900);
         },
 
-        // ─────────────────────────────────────────────────────────────────────────────
-        // 3. RENDER TEST RESULTS: Resolves control references natively
-        // ─────────────────────────────────────────────────────────────────────────────
+        // ─────────────────────────────────────────────────
+        //  RENDER TEST RESULTS
+        // ─────────────────────────────────────────────────
         _renderTestResults: function (results, q) {
             var view = this.getView();
             var container = view.byId("testResultsContainer");
@@ -346,17 +601,13 @@ sap.ui.define([
             results.forEach(function (r, i) {
                 if (r.pass) { passed++; }
 
-                // Explicitly using sap.m namespaced constructs to prevent global ReferenceErrors
                 var block = new sap.m.VBox().addStyleClass("testBlock " + (r.pass ? "test-pass" : "test-fail"));
 
-                // Header configuration
                 var hdr = new sap.m.HBox({ alignItems: "Center" }).addStyleClass("testBlockHdr " + (r.pass ? "test-hdr-pass" : "test-hdr-fail"));
                 hdr.addItem(new sap.ui.core.Icon({ src: r.pass ? "sap-icon://accept" : "sap-icon://decline" }).addStyleClass(r.pass ? "iconPass" : "iconFail"));
                 hdr.addItem(new sap.m.Text({ text: " Test " + (i + 1) + " — " + (r.pass ? "Passed" : "Failed") }).addStyleClass("testHdrText"));
-                // hdr.addItem(new sap.m.Text({ text: r.time + "ms" }).addStyleClass("testTime"));
                 block.addItem(hdr);
 
-                // Content details container
                 var body = new sap.m.VBox().addStyleClass("testBlockBody");
                 [
                     ["Input:", r.input],
@@ -374,38 +625,35 @@ sap.ui.define([
 
             container.setVisible(true);
 
-            // Render aggregated status summary layout
-            var summary = view.byId("testSummaryStatus");
+            // var summary = view.byId("testSummaryStatus");
             var total = results.length;
             if (passed === total) {
-                summary.setText("All " + total + " tests passed");
-                summary.setState("Success");
+                // summary.setText("All " + total + " tests passed");
+                // summary.setState("Success");
                 sap.m.MessageToast.show("All " + total + " test cases passed!");
             } else {
-                summary.setText((total - passed) + " / " + total + " tests failed");
-                summary.setState("Error");
+                // summary.setText((total - passed) + " / " + total + " tests failed");
+                // summary.setState("Error");
                 sap.m.MessageToast.show((total - passed) + " test case(s) failed");
             }
-            view.byId("testSummary").setVisible(true);
+            // view.byId("testSummary").setVisible(true);
         },
 
-        // ─────────────────────────────────────────────────────────────────────────────
-        // 1. DYNAMIC SUBMIT FUNCTION
-        // ─────────────────────────────────────────────────────────────────────────────
+        // ─────────────────────────────────────────────────
+        //  SUBMIT (HANDLES MULTIPLE QUESTIONS CORRECTLY)
+        // ─────────────────────────────────────────────────
         onSubmit: async function () {
             var view = this.getView();
             var submitBtn = view.byId("submitBtn");
 
-            // 1. Double-click Guard Layer: Prevents spamming requests while running
-            if (!submitBtn.getEnabled()) return;
-            
+            if (!submitBtn.getEnabled()) { return; }
+
             submitBtn.setText("⏳ Evaluating...");
             submitBtn.setEnabled(false);
 
             var idx = this._state.getProperty("/currentIndex");
             var q = this._questions ? this._questions[idx] : null;
 
-            // 2. EMPTY-DATA GUARD: Block submission if data isn't loaded ("Q 1 of 0" bug fix)
             if (!q || Object.keys(q).length === 0) {
                 sap.m.MessageToast.show("Question data is still loading or invalid. Please refresh the page!");
                 submitBtn.setText("✓ Submit");
@@ -417,7 +665,6 @@ sap.ui.define([
             var code = view.byId("codeEditor").getValue().trim();
             var sStarterCode = q.starter && q.starter[lang] ? q.starter[lang].trim() : "";
 
-            // Validate that the user actually wrote some code
             if (!code || code === sStarterCode) {
                 sap.m.MessageToast.show("Write your solution before submitting!");
                 submitBtn.setText("✓ Submit");
@@ -425,7 +672,6 @@ sap.ui.define([
                 return;
             }
 
-            // 3. STRICT LOCAL RUNTIME VALIDATION GUARD
             var localTestResults = [];
             var allLocalTestsPassed = true;
 
@@ -436,7 +682,6 @@ sap.ui.define([
                 allLocalTestsPassed = false;
             }
 
-            // Stop execution early if their code breaks the basic example cases locally
             if (!allLocalTestsPassed && lang === "JavaScript") {
                 view.byId("outputPlaceholder").setVisible(false);
                 view.byId("runningIndicator").setVisible(false);
@@ -448,113 +693,38 @@ sap.ui.define([
                 return;
             }
 
-            // Adjust visibility flags for the submission run phase
             view.byId("outputPlaceholder").setVisible(false);
             view.byId("runningIndicator").setVisible(true);
             view.byId("testResultsContainer").setVisible(false);
-            view.byId("testSummary").setVisible(false);
+            // view.byId("testSummary").setVisible(false);
 
-            var oAiPanel = view.byId("aiFeedbackPanel");
-            if (oAiPanel) oAiPanel.setVisible(false);
-
-            // 4. Map UI Data into the Exact payload structure the backend expects
-            var oPayload = {
-                title: q.title || "",
-                difficulty: q.difficulty || "easy",
-                topic: q.topic || "General",
-                language: lang,
-                question_text: q.description || q.question_text || "",
-                constraints: q.constraints || [],
-                examples: (q.examples || []).map(function (ex) {
-                    return { input: ex.input, output: ex.output, note: ex.note || "" };
-                }),
-                code: code
-            };
+            // var oAiPanel = view.byId("aiFeedbackPanel");
+            // if (oAiPanel) { oAiPanel.setVisible(false); }
 
             var self = this;
 
-            // 5. Fire your Custom AJAX Wrapper
-            this.ajaxCreateWithJQuery("evaluateStudentCode", {data: oPayload})
-                .then(function (response) {
-                    // Safe check: Parse if response comes back as a raw string stream
-                    if (typeof response === "string") {
-                        try {
-                            response = JSON.parse(response);
-                        } catch (e) {
-                            throw new Error("Invalid response string format received from server.");
-                        }
-                    }
-
-                    // Verify Express payload wrapper architecture
-                    if (!response.success || !response.result) throw new Error(response.error || "Evaluation failed or returned an empty result payload.");
-
-                    // Drill down to your actual evaluation object keys
-                    var analysis = response.result;
-
-                    // Turn off loading animation spinner
+            Promise.resolve()
+                .then(function () {
                     view.byId("runningIndicator").setVisible(false);
 
-                    // 6. Save data into local state tracker properties
+                    var totalTests = localTestResults.length || 1;
+                    var passedCount = localTestResults.filter(function (r) { return r.pass; }).length;
+                    var calculatedScore = Math.round((passedCount / totalTests) * 10);
+
                     q.status = "Submitted";
-                    q.aiScore = analysis.correctnessScore !== undefined ? analysis.correctnessScore : 0;
+                    q.aiScore = calculatedScore;
 
-                    // Build a highly-professional, styled HTML presentation layout
-                    q.aiFeedback = [
-                        "<div style='font-size: 1.1rem; margin-bottom: 8px;'><strong>Evaluation Summary:</strong></div>",
-                        "<p style='color: #555; line-height: 1.4; margin-bottom: 12px;'>" + (analysis.detailedFeedback || "No detailed breakdown summary provided.") + "</p>",
-                        "<hr style='border: 0; border-top: 1px solid #e5e5e5; margin: 12px 0;'>",
-                        "<table style='width: 100%; border-collapse: collapse; font-size: 0.95rem;'>",
-                        "  <tr>",
-                        "    <td style='padding: 6px 0; color: #666; width: 40%;'><strong>Time Complexity:</strong></td>",
-                        "    <td style='padding: 6px 0; font-family: monospace; font-weight: bold; color: #004085;'>" + (analysis.timeComplexity || "Not Provided") + "</td>",
-                        "  </tr>",
-                        "  <tr>",
-                        "    <td style='padding: 6px 0; color: #666;'><strong>Space Complexity:</strong></td>",
-                        "    <td style='padding: 6px 0; font-family: monospace; font-weight: bold; color: #004085;'>" + (analysis.spaceComplexity || "Not Provided") + "</td>",
-                        "  </tr>",
-                        "</table>"
-                    ].join("");
-
-                    // Collate weaknesses and strengths into suggestions list
-                    q.aiSuggestions = (analysis.weaknesses || []).map(function (w) { return "⚠ " + w; }).concat(
-                        (analysis.strengths || []).map(function (s) { return "✓ " + s; })
-                    );
-
-                    // Update the lower output pane test list representation
                     self._renderTestResults(localTestResults, q);
 
-                    // 7. Update UI Text Fields safely with real server values
-                    if (view.byId("aiScoreTitle")) view.byId("aiScoreTitle").setText(q.aiScore + " / 10");
+                    // if (view.byId("aiScoreTitle")) { view.byId("aiScoreTitle").setText(q.aiScore + " / 10"); }
 
-                    if (view.byId("aiFeedbackText")) view.byId("aiFeedbackText").setHtmlText(q.aiFeedback);
+                    // if (view.byId("aiFeedbackText")) {
+                    //     view.byId("aiFeedbackText").setHtmlText("<div style='color: #666;'>Local test runs complete. Solution recorded.</div>");
+                    // }
+                    // var sugBox = view.byId("aiSuggestionsContainer");
+                    // if (sugBox) { sugBox.destroyItems(); }
+                    // if (oAiPanel) { oAiPanel.setVisible(true); }
 
-                    // Rebuild Suggestions Box natively using sap.m elements & icons
-                    var sugBox = view.byId("aiSuggestionsContainer");
-                    if (sugBox) {
-                        sugBox.destroyItems();
-                        q.aiSuggestions.forEach(function (s) {
-                            var isWarning = s.startsWith("⚠");
-                            var sStyle = isWarning ? "margin-left: 8px; font-weight: 500; color: #bb0000;" : "margin-left: 8px; color: #007000;";
-                            var sIcon = isWarning ? "sap-icon://alert" : "sap-icon://accept";
-                            var sIconColor = isWarning ? "Critical" : "Positive";
-
-                            var sugRow = new sap.m.HBox({
-                                alignItems: "Center",
-                                class: "sapUiTinyMarginBottom"
-                            });
-
-                            sugRow.addItem(new sap.ui.core.Icon({ src: sIcon, color: sIconColor }));
-                            sugRow.addItem(new sap.m.FormattedText().setHtmlText("<span style='" + sStyle + "'>" + s.substring(2) + "</span>"));
-                            sugBox.addItem(sugRow);
-                        });
-                    }
-
-                    // Display the freshly populated AI feedback canvas panel
-                    if (oAiPanel) {
-                        oAiPanel.setVisible(true);
-                    }
-
-                    // 8. Sync Progress Elements across upper navigation bar components
                     self._updateDots();
 
                     var statusBadge = view.byId("statusBadge");
@@ -564,72 +734,86 @@ sap.ui.define([
                     }
 
                     self._updateProgress();
-                    sap.m.MessageToast.show("Evaluation processing complete!");
 
-                    // FIXED: Save ONLY the current question answer instead of looping all
+                    // Step 1: Save the answer for this single question to the DB first
                     return self.saveCurrentCandidateAnswer(q, code);
                 })
                 .then(function () {
-                    // Finally, commit total aggregated balance metrics down to TestAttempt table
-                    return self.UpdateTestAttempt("In Progress");
-                })
-                .then(function () {
-                    sap.m.MessageToast.show("All solution progress successfully secured to DB!");
+                    // ─── CHECK IF THIS IS THE LAST QUESTION ───
+                    var iTotalQuestions = self._questions ? self._questions.length : 0;
+                    var isLastQuestion = (idx === iTotalQuestions - 1);
+
+                    if (isLastQuestion) {
+                        // If it's the final question, lock the entire TestAttempt as "submitted"
+                        return self.UpdateTestAttempt("submitted")
+                            .then(function () {
+                                self._testSubmitted = true;
+
+                                sap.m.MessageBox.success(
+                                    "Thank you for attending the interview! Our experts will evaluate your code and get back to you soon.",
+                                    {
+                                        title: "Assessment Submitted Successfully",
+                                        actions: [sap.m.MessageBox.Action.OK],
+                                        onClose: function (oAction) {
+                                            // Optional: Redirect candidate back to summary portal dashboard
+                                        }
+                                    }
+                                );
+                            });
+                    } else {
+                        // If there are more questions remaining, just show a success toast and don't close the test
+                        sap.m.MessageToast.show("Solution for Question " + (idx + 1) + " saved successfully! Proceed to the next question.");
+                        return Promise.resolve();
+                    }
                 })
                 .catch(function (err) {
                     view.byId("runningIndicator").setVisible(false);
-                    var sErrorMsg = err.message || err.responseText || "An unexpected networking issue occurred.";
+                    var sErrorMsg = err.message || err.responseText || "An unexpected database issue occurred.";
                     sap.m.MessageToast.show("Submission failed: " + sErrorMsg);
                     console.error(err);
                 })
                 .then(function () {
-                    // 9. ALWAYS unlock submit button state regardless of process execution paths
-                    submitBtn.setText("✓ Submit");
-                    submitBtn.setEnabled(true);
+                    // Toggle buttons elegantly based on whether it was the final submission or not
+                    var iTotalQuestions = self._questions ? self._questions.length : 0;
+                    if (idx === iTotalQuestions - 1) {
+                        submitBtn.setText("✓ Submitted");
+                        submitBtn.setEnabled(false);
+                    } else {
+                        submitBtn.setText("✓ Resubmit");
+                        submitBtn.setEnabled(true);
+                    }
                 });
         },
 
         UpdateTestAttempt: function (status) {
             var oSession = this.getOwnerComponent().getModel("session");
+            var oTest = this.getView().getModel("oProgrammingModel").getProperty("/tests");
 
-            // For a coding test, calculating aggregated metrics across all attempted questions
             var iTotalQuestions = this._questions ? this._questions.length : 0;
             var iTotalScore = 0;
 
             if (this._questions) {
-                this._questions.forEach(function (q) {
-                    iTotalScore += q.aiScore ? parseFloat(q.aiScore) : 0;
-                });
+                this._questions.forEach(function (q) { iTotalScore += q.aiScore ? parseFloat(q.aiScore) : 0; });
             }
 
             var iMaxPossiblePoints = iTotalQuestions * 10;
             var iCalculatedPercentage = iMaxPossiblePoints > 0 ? ((iTotalScore / iMaxPossiblePoints) * 100).toFixed(2) : 0;
 
             var oPayload = {
-                status: status, // "In Progress" or final status if terminating test
+                status: status,
                 submitted_at: new Date().toISOString(),
                 total_marks: iTotalScore,
                 score: iCalculatedPercentage,
-                result_status: iCalculatedPercentage >= 40 ? "Pass" : "Fail"
+                result_status: iCalculatedPercentage >= parseFloat(oTest.pass_score) ? "Pass" : "Fail",
+                test_id: oTest.id
             };
 
-            var requestData = {
-                filters: {
-                    id: oSession.getProperty("/attemptId")
-                },
+            return this.ajaxUpdateWithJQuery("TestAttempt", {
+                filters: { id: oSession.getProperty("/attemptId") },
                 data: oPayload
-            };
-
-            return this.ajaxUpdateWithJQuery("TestAttempt", requestData)
-                .then(function (response) {
-                    return response;
-                })
-                .catch(function (error) {
-                    throw error;
-                });
+            });
         },
 
-        // FIXED FUNCTION NAME & APPROACH: Focuses only on the submitted question to prevent duplicate rows
         saveCurrentCandidateAnswer: function (oQuestion, sCurrentCode) {
             var oSession = this.getOwnerComponent().getModel("session");
             var attemptId = oSession.getProperty("/attemptId");
@@ -641,26 +825,17 @@ sap.ui.define([
                 marks_awarded: oQuestion.aiScore || 0,
                 submitted_code: sCurrentCode || "",
                 language: lang,
-                ai_feedback: oQuestion.aiFeedback || "",
+                ai_feedback: "Local validation completed.",
                 ai_score: oQuestion.aiScore || 0,
                 code_status: oQuestion.status || "Submitted"
             };
 
-            // NOTE: If your backend framework uses Upsert logic (Update if exists, else insert), 
-            // make sure your standard endpoint maps this using primary keys (attempt_id + question_id)
-            return this.ajaxCreateWithJQuery("CandidateAnswers", {
-                data: oPayload
-            })
-                .then(function (response) {
-                    return response;
-                })
-                .catch(function (error) {
-                    throw error;
-                });
+            return this.ajaxCreateWithJQuery("CandidateAnswers", { data: oPayload });
         },
-        // =========================================================================
-        // RUN TESTS BUTTON ACTION HANDLER (PROMISE THEN VERSION)
-        // =========================================================================
+
+        // ─────────────────────────────────────────────────
+        //  RUN TESTS BUTTON
+        // ─────────────────────────────────────────────────
         onRunTestsButtonPress: async function () {
             var view = this.getView();
             var q = this._questions[this._state.getProperty("/currentIndex")];
@@ -668,17 +843,12 @@ sap.ui.define([
             view.byId("outputPlaceholder").setVisible(false);
             view.byId("runningIndicator").setVisible(true);
 
-            // Call the async function and extract the data inside .then()
             await this._simulateTestResults(q)
                 .then(function (aFinalResults) {
                     this._renderTestResults(aFinalResults, q);
                 }.bind(this))
-                .catch(function (oError) {
-                    console.error(oError);
-                })
-                .finally(function () {
-                    view.byId("runningIndicator").setVisible(false);
-                });
+                .catch(function (oError) { console.error(oError); })
+                .finally(function () { view.byId("runningIndicator").setVisible(false); });
         },
 
         _simulateTestResults: async function (q) {
@@ -687,16 +857,13 @@ sap.ui.define([
             var lang = this._state.getProperty("/currentLang") || "JavaScript";
             var aExamples = q.examples || q.options || [];
 
-            // DYNAMIC RESOLUTION: Auto-extract the target function name from the editor source template
             var functionName = q.functionName || q.entryPoint;
             if (!functionName) {
                 if (lang === "JavaScript") {
                     var oVarMatch = code.match(/(?:var|let|const)\s+([a-zA-Z0-9_]+)\s*=\s*function/);
-
                     if (oVarMatch) {
                         functionName = oVarMatch[1];
                     } else {
-                        // 2. Fallback to classic style declaration: function name(
                         var oClassicMatch = code.match(/function\s+([a-zA-Z0-9_]+)\s*\(/);
                         functionName = oClassicMatch ? oClassicMatch[1] : "solution";
                     }
@@ -709,7 +876,6 @@ sap.ui.define([
                 }
             }
 
-            // Prepare unified payload object structure for ALL runtime engine environments
             var oPayload = {
                 title: q.title || "Coding Challenge",
                 language: lang,
@@ -717,48 +883,21 @@ sap.ui.define([
                 functionName: functionName,
                 cases: aExamples.map(function (ex) {
                     var oNote = ex.note && typeof ex.note === "object" ? ex.note : ex;
-                    return {
-                        input: oNote.input,
-                        output: oNote.output
-                    };
+                    return { input: oNote.input, output: oNote.output };
                 })
             };
 
-            // =========================================================================
-            // UNIFIED ASYNC/AWAIT PIPELINE FOR ALL LANGUAGES
-            // =========================================================================
             try {
-                // Await the response array straight from the wrapper utility call
-                var aBackendResults = await this.ajaxCreateWithJQuery("run", {
-                    data: oPayload
-                });
-
-                // Return the clean matrix data array [ {input, expected, got, pass} ]
-                return aBackendResults;
-
+                return await this.ajaxCreateWithJQuery("run", { data: oPayload });
             } catch (error) {
-                // Fallback row error mapping grid if connection drops or environment is unreachable
                 var sMsg = error.responseText || error.message || "Failed to reach compilation service.";
-
                 return aExamples.map(function (ex) {
                     var oNote = ex.note && typeof ex.note === "object" ? ex.note : ex;
-                    return {
-                        input: oNote.input,
-                        expected: oNote.output,
-                        got: "RuntimeError: " + sMsg,
-                        pass: false,
-                        time: 0
-                    };
+                    return { input: oNote.input, expected: oNote.output, got: "RuntimeError: " + sMsg, pass: false, time: 0 };
                 });
             }
         },
-        // ─────────────────────────────────────────────────
-        //  SUBMIT ALL (top bar)
-        // ─────────────────────────────────────────────────
-        onSubmitAll: function () {
-            var submitted = this._questions.filter(function (q) { return q.status === "Submitted"; }).length;
-            MessageToast.show(submitted + " / " + this._questions.length + " questions submitted. Finalising assessment...");
-        },
+
 
         // ─────────────────────────────────────────────────
         //  PROGRESS DOTS
@@ -824,8 +963,7 @@ sap.ui.define([
             var h = Math.floor(s / 3600);
             var m = Math.floor((s % 3600) / 60);
             var sec = s % 60;
-            var display = this._pad(h) + ":" + this._pad(m) + ":" + this._pad(sec);
-            this._state.setProperty("/timerDisplay", display);
+            this._state.setProperty("/timerDisplay", this._pad(h) + ":" + this._pad(m) + ":" + this._pad(sec));
         },
 
         _pad: function (n) {
