@@ -33,32 +33,28 @@ sap.ui.define([
             this._testDialogOpen = false;
 
             // ── Security: disable right-click, copy, paste, dev shortcuts ──
-            // document.addEventListener("contextmenu", function (e) { e.preventDefault(); });
-            // document.addEventListener("copy",        function (e) { e.preventDefault(); });
-            // document.addEventListener("cut",         function (e) { e.preventDefault(); });
-            // document.addEventListener("paste",       function (e) { e.preventDefault(); });
-            // document.addEventListener("keydown",     function (e) {
-            //     if (e.ctrlKey && ["c","C","x","X","v","V"].indexOf(e.key) !== -1) {
-            //         e.preventDefault();
-            //     }
-            //     // F11 toggles fullscreen manually
-            //     if (e.key === "F11") {
-            //         e.preventDefault();
-            //     }
-            // });
+            document.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+            document.addEventListener("copy", function (e) { e.preventDefault(); });
+            document.addEventListener("cut", function (e) { e.preventDefault(); });
+            document.addEventListener("paste", function (e) { e.preventDefault(); });
+            document.addEventListener("keydown", function (e) {
+                if (e.ctrlKey && ["c", "C", "x", "X", "v", "V"].indexOf(e.key) !== -1) {
+                    e.preventDefault();
+                }
+                // F11 toggles fullscreen manually
+                if (e.key === "F11") {
+                    e.preventDefault();
+                }
+            });
 
-            // ── Security: detect fullscreen exit / tab switch / window blur ──
-            // NOTE: keep these bindings active even while the listeners below
-            // are commented out, so onExit's removeEventListener calls are safe
-            // and so re-enabling is a one-line uncomment when you're ready.
             this._boundFullscreenChange = this._onFullscreenChange.bind(this);
             this._boundVisibilityChange = this._onVisibilityChange.bind(this);
             this._boundWindowBlur = this._onWindowBlur.bind(this);
 
-            // document.addEventListener("fullscreenchange",       this._boundFullscreenChange);
-            // document.addEventListener("webkitfullscreenchange", this._boundFullscreenChange);
-            // document.addEventListener("visibilitychange",       this._boundVisibilityChange);
-            // window.addEventListener("blur",                     this._boundWindowBlur);
+            document.addEventListener("fullscreenchange", this._boundFullscreenChange);
+            document.addEventListener("webkitfullscreenchange", this._boundFullscreenChange);
+            document.addEventListener("visibilitychange", this._boundVisibilityChange);
+            window.addEventListener("blur", this._boundWindowBlur);
 
             var self = this;
             this.getOwnerComponent().getRouter().getRoute("view1").attachPatternMatched(function () {
@@ -150,9 +146,18 @@ sap.ui.define([
         /** Request fullscreen across all browser vendors */
         _enterFullscreen: function () {
             var elem = document.documentElement;
-            if (elem.requestFullscreen) { elem.requestFullscreen(); }
-            else if (elem.webkitRequestFullscreen) { elem.webkitRequestFullscreen(); }
-            else if (elem.msRequestFullscreen) { elem.msRequestFullscreen(); }
+
+            if (!document.fullscreenElement) {
+                if (elem.requestFullscreen) {
+                    elem.requestFullscreen().catch(function (err) {
+                        // console.log("Fullscreen failed:", err);
+                    });
+                } else if (elem.webkitRequestFullscreen) {
+                    elem.webkitRequestFullscreen();
+                } else if (elem.msRequestFullscreen) {
+                    elem.msRequestFullscreen();
+                }
+            }
         },
 
         /** Exit fullscreen safely, checking element exists first */
@@ -268,7 +273,7 @@ sap.ui.define([
                 pSaveCurrent = this.saveCurrentCandidateAnswer(q, code).catch(function (err) {
                     // Don't block finalisation if this single save fails —
                     // log it, the TestAttempt-level submit below still proceeds.
-                    console.error("Failed to save final in-progress answer:", err);
+                    // console.error("Failed to save final in-progress answer:", err);
                 });
             }
 
@@ -290,7 +295,7 @@ sap.ui.define([
                 .catch(function (err) {
                     var sErrorMsg = err && (err.message || err.responseText) || "An unexpected error occurred while submitting.";
                     sap.m.MessageToast.show("Submission failed: " + sErrorMsg);
-                    console.error(err);
+                    // console.error(err);
                 });
         },
 
@@ -472,7 +477,7 @@ sap.ui.define([
                 }
                 return bExists;
             } catch (oErr) {
-                console.error("Failed to check existing CandidateAnswers record:", oErr);
+                // console.error("Failed to check existing CandidateAnswers record:", oErr);
                 // Fail-open: don't block the candidate if the check itself errors out
                 return false;
             }
@@ -750,7 +755,7 @@ sap.ui.define([
                                         title: "Assessment Submitted Successfully",
                                         actions: [sap.m.MessageBox.Action.OK],
                                         onClose: function (oAction) {
-                                            this.getOwnerComponent().getRouter().navTo("setup");
+                                            self.getOwnerComponent().getRouter().navTo("setup");
                                             // Optional: Redirect candidate back to summary portal dashboard
                                         }
                                     }
@@ -766,7 +771,7 @@ sap.ui.define([
                     view.byId("runningIndicator").setVisible(false);
                     var sErrorMsg = err.message || err.responseText || "An unexpected database issue occurred.";
                     sap.m.MessageToast.show("Submission failed: " + sErrorMsg);
-                    console.error(err);
+                    // console.error(err);
                 })
                 .then(function () {
                     // Toggle buttons elegantly based on whether it was the final submission or not
@@ -980,7 +985,7 @@ sap.ui.define([
             if (q && q.status !== "Submitted" && code) {
                 q.status = q.aiScore ? q.status : "Submitted";
                 pSaveCurrent = this.saveCurrentCandidateAnswer(q, code).catch(function (err) {
-                    console.error("Failed to save final in-progress answer:", err);
+                    // console.error("Failed to save final in-progress answer:", err);
                 });
             }
 
@@ -1001,7 +1006,7 @@ sap.ui.define([
                     );
                 })
                 .catch(function (err) {
-                    console.error("Failed to finalise attempt on timeout:", err);
+                    // console.error("Failed to finalise attempt on timeout:", err);
                     // Don't trap the candidate on a dead screen even if the save failed
                     self._navigateToHome();
                 });

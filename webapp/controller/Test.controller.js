@@ -15,11 +15,11 @@ sap.ui.define([
 
         // ── Lifecycle ─────────────────────────────────────────────────
         onInit: function () {
-            this._oTimer          = null;
-            this._oSubmitDialog   = null;
-            this._oTimeoutDialog  = null;
-            this._testSubmitted   = false;   // FIX 1: must be initialized here
-            this._testDialogOpen  = false;
+            this._oTimer = null;
+            this._oSubmitDialog = null;
+            this._oTimeoutDialog = null;
+            this._testSubmitted = false;   // FIX 1: must be initialized here
+            this._testDialogOpen = false;
 
             var oSession = this.getOwnerComponent().getModel("session");
             if (!oSession.getProperty("/candidateName")) {
@@ -27,20 +27,20 @@ sap.ui.define([
             }
 
             // ── Security: disable right-click, copy, paste, keyboard shortcuts ──
-            // document.addEventListener("contextmenu", function (e) { e.preventDefault(); });
-            // document.addEventListener("copy",        function (e) { e.preventDefault(); });
-            // document.addEventListener("cut",         function (e) { e.preventDefault(); });
-            // document.addEventListener("paste",       function (e) { e.preventDefault(); });
-            // document.addEventListener("keydown",     function (e) {
-            //     if (e.ctrlKey && ["c","C","x","X","v","V"].indexOf(e.key) !== -1) {
-            //         e.preventDefault();
-            //     }
-            // });
+            document.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+            document.addEventListener("copy",        function (e) { e.preventDefault(); });
+            document.addEventListener("cut",         function (e) { e.preventDefault(); });
+            document.addEventListener("paste",       function (e) { e.preventDefault(); });
+            document.addEventListener("keydown",     function (e) {
+                if (e.ctrlKey && ["c","C","x","X","v","V"].indexOf(e.key) !== -1) {
+                    e.preventDefault();
+                }
+            });
 
-            // // ── Security: detect tab switch / window blur / fullscreen exit ──
-            // document.addEventListener("fullscreenchange",  this._onFullscreenChange.bind(this));
-            // document.addEventListener("visibilitychange",  this._onVisibilityChange.bind(this));
-            // window.addEventListener("blur", this._onWindowBlur.bind(this));
+            // ── Security: detect tab switch / window blur / fullscreen exit ──
+            document.addEventListener("fullscreenchange",  this._onFullscreenChange.bind(this));
+            document.addEventListener("visibilitychange",  this._onVisibilityChange.bind(this));
+            window.addEventListener("blur", this._onWindowBlur.bind(this));
 
             var oRouter = this.getOwnerComponent().getRouter();
             oRouter.getRoute("test").attachPatternMatched(this._onRouteMatched, this);
@@ -50,7 +50,7 @@ sap.ui.define([
             this._stopTimer();
             // FIX 2: always exit fullscreen cleanly when controller is destroyed
             this._exitFullscreen();
-            if (this._oSubmitDialog)  { this._oSubmitDialog.destroy(); }
+            if (this._oSubmitDialog) { this._oSubmitDialog.destroy(); }
             if (this._oTimeoutDialog) { this._oTimeoutDialog.destroy(); }
         },
 
@@ -63,10 +63,10 @@ sap.ui.define([
                 return this.getOwnerComponent().getRouter().navTo("login");
             }
 
-            this._testSubmitted  = false;  // reset on every fresh route match
+            this._testSubmitted = false;  // reset on every fresh route match
             this._testDialogOpen = false;
 
-            if (this._oSubmitDialog)  { this._oSubmitDialog.destroy();  this._oSubmitDialog  = null; }
+            if (this._oSubmitDialog) { this._oSubmitDialog.destroy(); this._oSubmitDialog = null; }
             if (this._oTimeoutDialog) { this._oTimeoutDialog.destroy(); this._oTimeoutDialog = null; }
 
             this._stopTimer();
@@ -85,9 +85,9 @@ sap.ui.define([
          */
         _enterFullscreen: function () {
             var elem = document.documentElement;
-            if      (elem.requestFullscreen)       { elem.requestFullscreen(); }
-            else if (elem.webkitRequestFullscreen)  { elem.webkitRequestFullscreen(); }
-            else if (elem.msRequestFullscreen)      { elem.msRequestFullscreen(); }
+            if (elem.requestFullscreen) { elem.requestFullscreen(); }
+            else if (elem.webkitRequestFullscreen) { elem.webkitRequestFullscreen(); }
+            else if (elem.msRequestFullscreen) { elem.msRequestFullscreen(); }
         },
 
         /**
@@ -99,14 +99,14 @@ sap.ui.define([
             if (document.fullscreenElement ||
                 document.webkitFullscreenElement ||
                 document.msFullscreenElement) {
-                if      (document.exitFullscreen)       { document.exitFullscreen(); }
-                else if (document.webkitExitFullscreen)  { document.webkitExitFullscreen(); }
-                else if (document.msExitFullscreen)      { document.msExitFullscreen(); }
+                if (document.exitFullscreen) { document.exitFullscreen(); }
+                else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
+                else if (document.msExitFullscreen) { document.msExitFullscreen(); }
             }
         },
 
         _ensureMockDataInitialized: function () {
-            var oComponent  = this.getOwnerComponent();
+            var oComponent = this.getOwnerComponent();
             var oStatsModel = oComponent.getModel("oQuestionStatsModel");
 
             if (!oStatsModel || !oStatsModel.getProperty("/Questions")) {
@@ -118,9 +118,9 @@ sap.ui.define([
                         marks: 2,
                         order_no: 0,
                         options: [
-                            { id: 1, option_text: "JSONModel",     is_correct: 0 },
-                            { id: 2, option_text: "XMLModel",      is_correct: 0 },
-                            { id: 3, option_text: "ODataModel",    is_correct: 1 },
+                            { id: 1, option_text: "JSONModel", is_correct: 0 },
+                            { id: 2, option_text: "XMLModel", is_correct: 0 },
+                            { id: 3, option_text: "ODataModel", is_correct: 1 },
                             { id: 4, option_text: "ResourceModel", is_correct: 0 }
                         ]
                     },
@@ -133,21 +133,21 @@ sap.ui.define([
                         options: [
                             { id: 5, option_text: "Business Technology Pipeline", is_correct: 0 },
                             { id: 6, option_text: "Business Technology Platform", is_correct: 1 },
-                            { id: 7, option_text: "Basic Technical Protocol",     is_correct: 0 }
+                            { id: 7, option_text: "Basic Technical Protocol", is_correct: 0 }
                         ]
                     }
                 ];
 
                 oStatsModel = new JSONModel({
                     QuestionCount: aMockQuestions.length,
-                    Duration:      aMockQuestions.length,
-                    TotalPoints:   aMockQuestions.length,
-                    Questions:     aMockQuestions
+                    Duration: aMockQuestions.length,
+                    TotalPoints: aMockQuestions.length,
+                    Questions: aMockQuestions
                 });
                 oComponent.setModel(oStatsModel, "oQuestionStatsModel");
             }
 
-            var nTotalQs      = oStatsModel.getProperty("/Questions").length;
+            var nTotalQs = oStatsModel.getProperty("/Questions").length;
             var oSessionModel = oComponent.getModel("session");
 
             if (!oSessionModel) {
@@ -157,7 +157,7 @@ sap.ui.define([
 
             var aCurrentAnswers = oSessionModel.getProperty("/answers");
             if (!aCurrentAnswers || aCurrentAnswers.length !== nTotalQs) {
-                oSessionModel.setProperty("/answers",         Array(nTotalQs).fill(null));
+                oSessionModel.setProperty("/answers", Array(nTotalQs).fill(null));
                 oSessionModel.setProperty("/currentQuestion", 0);
             }
         },
@@ -193,8 +193,8 @@ sap.ui.define([
         },
 
         _updateTimerDisplay: function (nLeft) {
-            var m   = Math.floor(nLeft / 60);
-            var s   = nLeft % 60;
+            var m = Math.floor(nLeft / 60);
+            var s = nLeft % 60;
             var txt = ("0" + m).slice(-2) + ":" + ("0" + s).slice(-2);
 
             var oSession = this.getOwnerComponent().getModel("session");
@@ -209,31 +209,31 @@ sap.ui.define([
         // ── Render Controls ───────────────────────────────────────────
         _renderQuestion: function () {
             var oStatsModel = this.getOwnerComponent().getModel("oQuestionStatsModel");
-            var oSession    = this.getOwnerComponent().getModel("session");
+            var oSession = this.getOwnerComponent().getModel("session");
 
-            var aQs      = oStatsModel.getProperty("/Questions") || [];
-            var nIdx     = oSession.getProperty("/currentQuestion") || 0;
+            var aQs = oStatsModel.getProperty("/Questions") || [];
+            var nIdx = oSession.getProperty("/currentQuestion") || 0;
             var aAnswers = oSession.getProperty("/answers") || [];
-            var nTotal   = aQs.length;
-            var oQ       = aQs[nIdx];
+            var nTotal = aQs.length;
+            var oQ = aQs[nIdx];
 
             if (!oQ) { return; }
 
             oSession.setProperty("/totalQuestions", nTotal);
 
             var sQInfo = "Question " + (nIdx + 1) + " of " + nTotal;
-            if (this.byId("headerQInfo"))  { this.byId("headerQInfo").setText(sQInfo); }
+            if (this.byId("headerQInfo")) { this.byId("headerQInfo").setText(sQInfo); }
 
             var nPct = Math.round(((nIdx + 1) / nTotal) * 100);
-            if (this.byId("progressBar"))   { this.byId("progressBar").setPercentValue(nPct); }
+            if (this.byId("progressBar")) { this.byId("progressBar").setPercentValue(nPct); }
             if (this.byId("progressLabel")) { this.byId("progressLabel").setText(sQInfo); }
-            if (this.byId("progressPct"))   { this.byId("progressPct").setText(nPct + "% complete"); }
+            if (this.byId("progressPct")) { this.byId("progressPct").setText(nPct + "% complete"); }
 
             this._renderDots(nIdx, aAnswers, nTotal);
             this._renderOptions(oQ, nIdx, aAnswers);
 
             if (this.byId("qNumber")) { this.byId("qNumber").setText("QUESTION " + ("0" + (nIdx + 1)).slice(-2)); }
-            if (this.byId("qText"))   { this.byId("qText").setText(oQ.question_text); }
+            if (this.byId("qText")) { this.byId("qText").setText(oQ.question_text); }
 
             var nUnanswered = aAnswers.filter(function (a) { return a === null; }).length;
             var oUnanswered = this.byId("unansweredText");
@@ -258,8 +258,8 @@ sap.ui.define([
             var sHtml = "<div class='aiqQDots' id='aiqQDotsContainer'>";
             for (var i = 0; i < nTotal; i++) {
                 var sCls = "aiqQDot";
-                if (i === nCurrent)          { sCls += " aiqDotCurrent"; }
-                else if (aAnswers[i] !== null){ sCls += " aiqDotAnswered"; }
+                if (i === nCurrent) { sCls += " aiqDotCurrent"; }
+                else if (aAnswers[i] !== null) { sCls += " aiqDotAnswered"; }
                 sHtml += "<div class='" + sCls + "' onclick='window.aiqGoToQ(" + i + ")'>" + (i + 1) + "</div>";
             }
             sHtml += "</div>";
@@ -282,7 +282,7 @@ sap.ui.define([
 
             oQ.options.forEach(function (oOpt, index) {
                 var sLabelLetter = String.fromCharCode(65 + index);
-                var bChecked     = nSelectedOptionId === oOpt.id ? "checked" : "";
+                var bChecked = nSelectedOptionId === oOpt.id ? "checked" : "";
                 sHtml +=
                     "<div class='aiqOption'>" +
                     "<label style='display:flex;align-items:center;cursor:pointer;width:100%;'>" +
@@ -298,7 +298,7 @@ sap.ui.define([
             window.aiqSelectOpt = function (nOptionId) {
                 var oSession = that.getOwnerComponent().getModel("session");
                 var nCurrent = oSession.getProperty("/currentQuestion");
-                var aAns     = oSession.getProperty("/answers");
+                var aAns = oSession.getProperty("/answers");
                 aAns[nCurrent] = nOptionId;
                 oSession.setProperty("/answers", aAns);
                 that._renderQuestion();
@@ -317,8 +317,8 @@ sap.ui.define([
 
         onNext: function () {
             var oSession = this.getOwnerComponent().getModel("session");
-            var nIdx     = oSession.getProperty("/currentQuestion");
-            var nTotal   = oSession.getProperty("/totalQuestions");
+            var nIdx = oSession.getProperty("/currentQuestion");
+            var nTotal = oSession.getProperty("/totalQuestions");
             if (nIdx < nTotal - 1) {
                 oSession.setProperty("/currentQuestion", nIdx + 1);
                 this._renderQuestion();
@@ -327,10 +327,10 @@ sap.ui.define([
 
         // ── Submission Logic ──────────────────────────────────────────
         onSubmitPressed: function () {
-            var oSession    = this.getOwnerComponent().getModel("session");
-            var aAnswers    = oSession.getProperty("/answers") || [];
-            var nAnswered   = aAnswers.filter(function (a) { return a !== null; }).length;
-            var nTotal      = aAnswers.length;
+            var oSession = this.getOwnerComponent().getModel("session");
+            var aAnswers = oSession.getProperty("/answers") || [];
+            var nAnswered = aAnswers.filter(function (a) { return a !== null; }).length;
+            var nTotal = aAnswers.length;
             var nUnanswered = nTotal - nAnswered;
 
             var sMsg = "You have answered " + nAnswered + " of " + nTotal + " questions.";
@@ -343,7 +343,7 @@ sap.ui.define([
                 var that = this;
                 this._oSubmitDialog = new Dialog({
                     title: "Submit Assessment?",
-                    type:  "Message",
+                    type: "Message",
                     state: "Warning",
                     content: [
                         new Text({ id: "submitDialogMsg", text: sMsg, wrapping: true })
@@ -359,7 +359,7 @@ sap.ui.define([
                         }
                     }),
                     endButton: new Button({
-                        text:  "Continue Test",
+                        text: "Continue Test",
                         press: function () {
                             that._oSubmitDialog.close();
                         }
@@ -392,108 +392,118 @@ sap.ui.define([
         _calculateResultsData: function () {
             this._stopTimer();
 
-            var oSession    = this.getOwnerComponent().getModel("session");
+            var oSession = this.getOwnerComponent().getModel("session");
             var oStatsModel = this.getOwnerComponent().getModel("oQuestionStatsModel");
 
-            var aQs      = oStatsModel.getProperty("/Questions") || [];
+            var aQs = oStatsModel.getProperty("/Questions") || [];
             var aAnswers = oSession.getProperty("/answers") || [];
-            var nStart   = oSession.getProperty("/startTime") || Date.now();
+            var nStart = oSession.getProperty("/startTime") || Date.now();
+            var test = oStatsModel.getProperty("/tests") || {};
 
-            var nCorrectCount          = 0;
+            var nCorrectCount = 0;
             var nTotalScoreAccumulator = 0;
-            var nMaxPossibleMarks      = 0;
+            var nMaxPossibleMarks = 0;
 
             aQs.forEach(function (oQ, i) {
-                var nSelectedId      = aAnswers[i];
-                var nQuestionWeight  = oQ.marks || 1;
-                nMaxPossibleMarks   += nQuestionWeight;
+                var nSelectedId = aAnswers[i];
+                var nQuestionWeight = oQ.marks || 1;
+                nMaxPossibleMarks += nQuestionWeight;
 
-                var oSelectedOption = oQ.options.find(function (opt) {
-                    return opt.id === nSelectedId;
-                });
+                // Defensive check: Ensure options array exists before using .find()
+                if (oQ.options && Array.isArray(oQ.options)) {
+                    var oSelectedOption = oQ.options.find(function (opt) {
+                        return opt.id === nSelectedId;
+                    });
 
-                if (oSelectedOption && oSelectedOption.is_correct === 1) {
-                    nCorrectCount++;
-                    nTotalScoreAccumulator += nQuestionWeight;
+                    // Handles both 1/0 numbers and true/false booleans from the backend database
+                    if (oSelectedOption && (oSelectedOption.is_correct === 1 || oSelectedOption.is_correct === true)) {
+                        nCorrectCount++;
+                        nTotalScoreAccumulator += nQuestionWeight;
+                    }
                 }
             });
 
-            var nWrongCount  = aQs.length - nCorrectCount;
-            var nElapsed     = Math.floor((Date.now() - nStart) / 1000);
-            var nPercentage  = nMaxPossibleMarks > 0
+            var nWrongCount = aQs.length - nCorrectCount;
+            var nElapsed = Math.floor((Date.now() - nStart) / 1000);
+
+            var nPercentage = nMaxPossibleMarks > 0
                 ? Math.round((nTotalScoreAccumulator / nMaxPossibleMarks) * 100)
                 : 0;
-            var sPassingStatus = nPercentage >= 50 ? "Pass" : "Fail";
 
-            oSession.setProperty("/submitted",     true);
-            oSession.setProperty("/correctCount",  nCorrectCount);
-            oSession.setProperty("/wrongCount",    nWrongCount);
-            oSession.setProperty("/score",         nTotalScoreAccumulator);
-            oSession.setProperty("/percentage",    nPercentage);
+            // Secure the pass_score fallback value to prevent type-mismatch bugs (e.g. comparing string numbers)
+            var nRequiredPassScore = typeof test.pass_score !== 'undefined' ? Number(test.pass_score) : 50;
+            var sPassingStatus = nPercentage >= nRequiredPassScore ? "Pass" : "Fail";
+
+            // Set updated metrics into your SAP UI5 Session Model
+            oSession.setProperty("/submitted", true);
+            oSession.setProperty("/correctCount", nCorrectCount);
+            oSession.setProperty("/wrongCount", nWrongCount);
+            oSession.setProperty("/score", nTotalScoreAccumulator);
+            oSession.setProperty("/percentage", nPercentage);
             oSession.setProperty("/passingStatus", sPassingStatus);
-            oSession.setProperty("/elapsedTime",   nElapsed);
+            oSession.setProperty("/elapsedTime", nElapsed);
         },
 
         UpdateTestAttempt: function (status) {
             var oSession = this.getOwnerComponent().getModel("session");
             var oPayload = {
-                status:        status,
-                submitted_at:  new Date().toISOString(),
-                total_marks:   oSession.getProperty("/score"),
-                score:         oSession.getProperty("/percentage"),
+                status: status,
+                submitted_at: new Date().toISOString(),
+                total_marks: oSession.getProperty("/score"),
+                score: oSession.getProperty("/percentage"),
                 result_status: oSession.getProperty("/passingStatus")
             };
 
             this.ajaxUpdateWithJQuery("TestAttempt", {
                 filters: { id: oSession.getProperty("/attemptId") },
-                data:    oPayload
+                data: oPayload
             })
-            .then(function (response) {
-                console.log("Attempt update successful:", response);
-            })
-            .catch(function (error) {
-                MessageToast.show(error.message || error.responseText);
-            });
+                .then(function (response) {
+                    // console.log("Attempt update successful:", response);
+                })
+                .catch(function (error) {
+                    MessageToast.show(error.message || error.responseText);
+                });
         },
 
         saveCandidateAnswers: function () {
-            var oSession       = this.getOwnerComponent().getModel("session");
+            var oSession = this.getOwnerComponent().getModel("session");
             var oQuestionModel = this.getOwnerComponent().getModel("oQuestionStatsModel");
 
             var aQuestions = oQuestionModel.getProperty("/Questions") || [];
-            var aAnswers   = oSession.getProperty("/answers") || [];
-            var attemptId  = oSession.getProperty("/attemptId");
+            var aAnswers = oSession.getProperty("/answers") || [];
+            var attemptId = oSession.getProperty("/attemptId");
 
             aQuestions.forEach(function (oQuestion, index) {
                 var selectedOptionId = aAnswers[index];
-                var nIsCorrect       = 0;
-                var nMarksAwarded    = 0;
+                var nIsCorrect = 0;
+                var nMarksAwarded = 0;
 
                 if (selectedOptionId !== null && selectedOptionId !== undefined) {
                     var oSelectedOption = oQuestion.options.find(function (opt) {
                         return opt.id === selectedOptionId;
                     });
                     if (oSelectedOption && oSelectedOption.is_correct === 1) {
-                        nIsCorrect    = 1;
+                        nIsCorrect = 1;
                         nMarksAwarded = oQuestion.marks || 1;
                     }
                 }
 
                 this.ajaxCreateWithJQuery("CandidateAnswers", {
                     data: {
-                        attempt_id:         attemptId,
-                        question_id:        oQuestion.id,
+                        attempt_id: attemptId,
+                        question_id: oQuestion.id,
                         selected_option_id: selectedOptionId,
-                        is_correct:         nIsCorrect,
-                        marks_awarded:      nMarksAwarded
+                        is_correct: nIsCorrect,
+                        marks_awarded: nMarksAwarded
                     }
                 })
-                .then(function (response) {
-                    console.log("Candidate answer saved:", response);
-                })
-                .catch(function (error) {
-                    MessageToast.show(error.message || error.responseText);
-                });
+                    .then(function (response) {
+                        // console.log("Candidate answer saved:", response);
+                    })
+                    .catch(function (error) {
+                        MessageToast.show(error.message || error.responseText);
+                    });
 
             }.bind(this));
         },
@@ -504,7 +514,7 @@ sap.ui.define([
             if (!this._oTimeoutDialog) {
                 this._oTimeoutDialog = new Dialog({
                     title: "Time's Up!",
-                    type:  "Message",
+                    type: "Message",
                     state: "Error",
                     content: [
                         new HTML({
@@ -513,7 +523,7 @@ sap.ui.define([
                                 "<circle cx='12' cy='12' r='10'/><polyline points='12 6 12 12 16 14'/></svg></div>"
                         }),
                         new Text({
-                            text:     "Your time has expired. The assessment has been automatically submitted.",
+                            text: "Your time has expired. The assessment has been automatically submitted.",
                             wrapping: true
                         }).addStyleClass("aiqDialogText")
                     ],
@@ -540,24 +550,24 @@ sap.ui.define([
          * even after the submit dialog called exitFullscreen() on valid submit.
          */
         _onFullscreenChange: function () {
-            if (!document.fullscreenElement   &&
+            if (!document.fullscreenElement &&
                 !document.webkitFullscreenElement &&
-                !this._testSubmitted          &&
+                !this._testSubmitted &&
                 !this._testDialogOpen) {
                 this._autoSubmitTest("You have exited fullscreen mode.");
             }
         },
 
         _onVisibilityChange: function () {
-            if (document.hidden        &&
-                !this._testSubmitted   &&
+            if (document.hidden &&
+                !this._testSubmitted &&
                 !this._testDialogOpen) {
                 this._autoSubmitTest("Tab was switched or window was minimized.");
             }
         },
 
         _onWindowBlur: function () {
-            if (!this._testSubmitted   &&
+            if (!this._testSubmitted &&
                 !this._testDialogOpen) {
                 this._autoSubmitTest("Window lost focus.");
             }
@@ -576,8 +586,8 @@ sap.ui.define([
             MessageBox.show(
                 sMessage + "\n\nDo you want to submit the test?",
                 {
-                    icon:    MessageBox.Icon.WARNING,
-                    title:   "Warning",
+                    icon: MessageBox.Icon.WARNING,
+                    title: "Warning",
                     actions: [MessageBox.Action.YES, MessageBox.Action.NO],
 
                     onClose: function (oAction) {

@@ -106,7 +106,6 @@ sap.ui.define([
                     }
 
                     MessageToast.show(sMessage);
-                    console.error(error);
                 });
         }
 

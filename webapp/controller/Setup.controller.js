@@ -107,7 +107,6 @@ sap.ui.define([
                 oRoundModel.setData(oData);
                 oPage.setBusy(false);
             } catch (e) {
-                console.error("Error loading test attempts:", e);
                 oPage.setBusy(false);
             }
         },
@@ -145,7 +144,7 @@ sap.ui.define([
             var oPage = this.byId("homePage");
             oPage.setBusy(true);
 
-            this.ajaxReadWithJQuery("Questions", { test_id: testId })
+            this.ajaxReadWithJQuery("Questions", { test_id: testId, flag: 1 })
                 .then(response => {
                     oPage.setBusy(false);
 
