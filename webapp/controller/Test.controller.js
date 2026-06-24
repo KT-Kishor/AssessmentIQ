@@ -27,20 +27,20 @@ sap.ui.define([
             }
 
             // ── Security: disable right-click, copy, paste, keyboard shortcuts ──
-            document.addEventListener("contextmenu", function (e) { e.preventDefault(); });
-            document.addEventListener("copy",        function (e) { e.preventDefault(); });
-            document.addEventListener("cut",         function (e) { e.preventDefault(); });
-            document.addEventListener("paste",       function (e) { e.preventDefault(); });
-            document.addEventListener("keydown",     function (e) {
-                if (e.ctrlKey && ["c","C","x","X","v","V"].indexOf(e.key) !== -1) {
-                    e.preventDefault();
-                }
-            });
+            // document.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+            // document.addEventListener("copy", function (e) { e.preventDefault(); });
+            // document.addEventListener("cut", function (e) { e.preventDefault(); });
+            // document.addEventListener("paste", function (e) { e.preventDefault(); });
+            // document.addEventListener("keydown", function (e) {
+            //     if (e.ctrlKey && ["c", "C", "x", "X", "v", "V"].indexOf(e.key) !== -1) {
+            //         e.preventDefault();
+            //     }
+            // });
 
-            // ── Security: detect tab switch / window blur / fullscreen exit ──
-            document.addEventListener("fullscreenchange",  this._onFullscreenChange.bind(this));
-            document.addEventListener("visibilitychange",  this._onVisibilityChange.bind(this));
-            window.addEventListener("blur", this._onWindowBlur.bind(this));
+            // // ── Security: detect tab switch / window blur / fullscreen exit ──
+            // document.addEventListener("fullscreenchange", this._onFullscreenChange.bind(this));
+            // document.addEventListener("visibilitychange", this._onVisibilityChange.bind(this));
+            // window.addEventListener("blur", this._onWindowBlur.bind(this));
 
             var oRouter = this.getOwnerComponent().getRouter();
             oRouter.getRoute("test").attachPatternMatched(this._onRouteMatched, this);
@@ -474,7 +474,8 @@ sap.ui.define([
             var aAnswers = oSession.getProperty("/answers") || [];
             var attemptId = oSession.getProperty("/attemptId");
 
-            aQuestions.forEach(function (oQuestion, index) {
+            // Prepare payload array
+            var aCandidateAnswers = aQuestions.map(function (oQuestion, index) {
                 var selectedOptionId = aAnswers[index];
                 var nIsCorrect = 0;
                 var nMarksAwarded = 0;
@@ -483,29 +484,32 @@ sap.ui.define([
                     var oSelectedOption = oQuestion.options.find(function (opt) {
                         return opt.id === selectedOptionId;
                     });
+
                     if (oSelectedOption && oSelectedOption.is_correct === 1) {
                         nIsCorrect = 1;
                         nMarksAwarded = oQuestion.marks || 1;
                     }
                 }
 
-                this.ajaxCreateWithJQuery("CandidateAnswers", {
-                    data: {
-                        attempt_id: attemptId,
-                        question_id: oQuestion.id,
-                        selected_option_id: selectedOptionId,
-                        is_correct: nIsCorrect,
-                        marks_awarded: nMarksAwarded
-                    }
-                })
-                    .then(function (response) {
-                        // console.log("Candidate answer saved:", response);
-                    })
-                    .catch(function (error) {
-                        MessageToast.show(error.message || error.responseText);
-                    });
+                return {
+                    attempt_id: attemptId,
+                    question_id: oQuestion.id,
+                    selected_option_id: selectedOptionId,
+                    is_correct: nIsCorrect,
+                    marks_awarded: nMarksAwarded
+                };
+            });
 
-            }.bind(this));
+            // Single API call
+            this.ajaxCreateWithJQuery("CandidateAnswers", {
+                data: aCandidateAnswers
+            })
+                .then(function (response) {
+                    console.log("All candidate answers saved:", response);
+                })
+                .catch(function (error) {
+                    MessageToast.show(error.message || error.responseText);
+                });
         },
 
         // ── Auto Submit (timeout) ─────────────────────────────────────

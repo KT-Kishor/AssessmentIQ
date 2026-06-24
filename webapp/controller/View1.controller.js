@@ -33,28 +33,28 @@ sap.ui.define([
             this._testDialogOpen = false;
 
             // ── Security: disable right-click, copy, paste, dev shortcuts ──
-            document.addEventListener("contextmenu", function (e) { e.preventDefault(); });
-            document.addEventListener("copy", function (e) { e.preventDefault(); });
-            document.addEventListener("cut", function (e) { e.preventDefault(); });
-            document.addEventListener("paste", function (e) { e.preventDefault(); });
-            document.addEventListener("keydown", function (e) {
-                if (e.ctrlKey && ["c", "C", "x", "X", "v", "V"].indexOf(e.key) !== -1) {
-                    e.preventDefault();
-                }
-                // F11 toggles fullscreen manually
-                if (e.key === "F11") {
-                    e.preventDefault();
-                }
-            });
+            // document.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+            // document.addEventListener("copy", function (e) { e.preventDefault(); });
+            // document.addEventListener("cut", function (e) { e.preventDefault(); });
+            // document.addEventListener("paste", function (e) { e.preventDefault(); });
+            // document.addEventListener("keydown", function (e) {
+            //     if (e.ctrlKey && ["c", "C", "x", "X", "v", "V"].indexOf(e.key) !== -1) {
+            //         e.preventDefault();
+            //     }
+            //     // F11 toggles fullscreen manually
+            //     if (e.key === "F11") {
+            //         e.preventDefault();
+            //     }
+            // });
 
-            this._boundFullscreenChange = this._onFullscreenChange.bind(this);
-            this._boundVisibilityChange = this._onVisibilityChange.bind(this);
-            this._boundWindowBlur = this._onWindowBlur.bind(this);
+            // this._boundFullscreenChange = this._onFullscreenChange.bind(this);
+            // this._boundVisibilityChange = this._onVisibilityChange.bind(this);
+            // this._boundWindowBlur = this._onWindowBlur.bind(this);
 
-            document.addEventListener("fullscreenchange", this._boundFullscreenChange);
-            document.addEventListener("webkitfullscreenchange", this._boundFullscreenChange);
-            document.addEventListener("visibilitychange", this._boundVisibilityChange);
-            window.addEventListener("blur", this._boundWindowBlur);
+            // document.addEventListener("fullscreenchange", this._boundFullscreenChange);
+            // document.addEventListener("webkitfullscreenchange", this._boundFullscreenChange);
+            // document.addEventListener("visibilitychange", this._boundVisibilityChange);
+            // window.addEventListener("blur", this._boundWindowBlur);
 
             var self = this;
             this.getOwnerComponent().getRouter().getRoute("view1").attachPatternMatched(function () {
