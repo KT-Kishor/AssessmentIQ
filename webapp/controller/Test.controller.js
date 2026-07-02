@@ -21,8 +21,8 @@ sap.ui.define([
             this._testSubmitted = false;   // FIX 1: must be initialized here
             this._testDialogOpen = false;
 
-            var oSession = this.getOwnerComponent().getModel("session");
-            if (!oSession.getProperty("/candidateName")) {
+            this.oSession = this.oSession;
+            if (!this.oSession.getProperty("/candidateName")) {
                 return this.getOwnerComponent().getRouter().navTo("login");
             }
 
@@ -58,7 +58,7 @@ sap.ui.define([
         _onRouteMatched: function () {
             this._ensureMockDataInitialized();
 
-            var oSession = this.getOwnerComponent().getModel("session");
+            var oSession = this.oSession;
             if (!oSession.getProperty("/candidateName")) {
                 return this.getOwnerComponent().getRouter().navTo("login");
             }
@@ -164,7 +164,7 @@ sap.ui.define([
 
         // ── Timer Logic ───────────────────────────────────────────────
         _startTimer: function () {
-            var oSession = this.getOwnerComponent().getModel("session");
+            var oSession = this.oSession;
             oSession.setProperty("/timerRunning", true);
 
             this._oTimer = setInterval(function () {
@@ -209,7 +209,7 @@ sap.ui.define([
         // ── Render Controls ───────────────────────────────────────────
         _renderQuestion: function () {
             var oStatsModel = this.getOwnerComponent().getModel("oQuestionStatsModel");
-            var oSession = this.getOwnerComponent().getModel("session");
+            var oSession = this.oSession;
 
             var aQs = oStatsModel.getProperty("/Questions") || [];
             var nIdx = oSession.getProperty("/currentQuestion") || 0;
@@ -267,7 +267,7 @@ sap.ui.define([
 
             var that = this;
             window.aiqGoToQ = function (nIdx) {
-                var oSession = that.getOwnerComponent().getModel("session");
+                var oSession = that.oSession
                 if (!oSession.getProperty("/submitted")) {
                     oSession.setProperty("/currentQuestion", nIdx);
                     that._renderQuestion();
@@ -296,7 +296,7 @@ sap.ui.define([
             this.byId("optionsHtml").setContent(sHtml);
 
             window.aiqSelectOpt = function (nOptionId) {
-                var oSession = that.getOwnerComponent().getModel("session");
+                var oSession = that.oSession;
                 var nCurrent = oSession.getProperty("/currentQuestion");
                 var aAns = oSession.getProperty("/answers");
                 aAns[nCurrent] = nOptionId;
@@ -307,7 +307,7 @@ sap.ui.define([
 
         // ── Pagination Events ─────────────────────────────────────────
         onPrevious: function () {
-            var oSession = this.getOwnerComponent().getModel("session");
+            var oSession = this.oSession;
             var nIdx = oSession.getProperty("/currentQuestion");
             if (nIdx > 0) {
                 oSession.setProperty("/currentQuestion", nIdx - 1);
@@ -316,7 +316,7 @@ sap.ui.define([
         },
 
         onNext: function () {
-            var oSession = this.getOwnerComponent().getModel("session");
+            var oSession = this.oSession;
             var nIdx = oSession.getProperty("/currentQuestion");
             var nTotal = oSession.getProperty("/totalQuestions");
             if (nIdx < nTotal - 1) {
@@ -327,7 +327,7 @@ sap.ui.define([
 
         // ── Submission Logic ──────────────────────────────────────────
         onSubmitPressed: function () {
-            var oSession = this.getOwnerComponent().getModel("session");
+            var oSession = this.oSession;
             var aAnswers = oSession.getProperty("/answers") || [];
             var nAnswered = aAnswers.filter(function (a) { return a !== null; }).length;
             var nTotal = aAnswers.length;
@@ -384,6 +384,7 @@ sap.ui.define([
             // Step 3 — persist answers and update attempt
             this.saveCandidateAnswers();
             this.UpdateTestAttempt("submitted");
+            this.updateCandidateLoginStatus(this.oSession.getProperty("/candidates_id"), false);
 
             // Step 4 — navigate to result
             this.getOwnerComponent().getRouter().navTo("result");
@@ -392,7 +393,7 @@ sap.ui.define([
         _calculateResultsData: function () {
             this._stopTimer();
 
-            var oSession = this.getOwnerComponent().getModel("session");
+            var oSession = this.oSession;
             var oStatsModel = this.getOwnerComponent().getModel("oQuestionStatsModel");
 
             var aQs = oStatsModel.getProperty("/Questions") || [];
@@ -445,7 +446,7 @@ sap.ui.define([
         },
 
         UpdateTestAttempt: function (status) {
-            var oSession = this.getOwnerComponent().getModel("session");
+            var oSession = this.oSession;
             var oPayload = {
                 status: status,
                 submitted_at: new Date().toISOString(),
@@ -467,7 +468,7 @@ sap.ui.define([
         },
 
         saveCandidateAnswers: function () {
-            var oSession = this.getOwnerComponent().getModel("session");
+            var oSession = this.oSession;
             var oQuestionModel = this.getOwnerComponent().getModel("oQuestionStatsModel");
 
             var aQuestions = oQuestionModel.getProperty("/Questions") || [];

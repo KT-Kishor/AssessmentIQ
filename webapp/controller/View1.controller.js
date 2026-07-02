@@ -139,10 +139,6 @@ sap.ui.define([
             window.removeEventListener("blur", this._boundWindowBlur);
         },
 
-        // ─────────────────────────────────────────────────
-        //  FULLSCREEN HELPERS  (mirrors Test controller)
-        // ─────────────────────────────────────────────────
-
         /** Request fullscreen across all browser vendors */
         _enterFullscreen: function () {
             var elem = document.documentElement;
@@ -235,18 +231,7 @@ sap.ui.define([
             );
         },
 
-        /**
-         * Force-finalises the ENTIRE test attempt regardless of which question
-         * the candidate is currently on. Used by the anti-cheat auto-submit flow
-         * (fullscreen exit / tab switch / window blur) and can also be wired to
-         * the "Submit All" toolbar button.
-         *
-         * Unlike onSubmit() (which submits ONE question), this:
-         *   1. Saves the candidate's current in-progress code for the active
-         *      question (even if it hasn't been run/validated) so nothing is lost.
-         *   2. Marks the TestAttempt as submitted via UpdateTestAttempt.
-         *   3. Shows a single confirmation dialog and stops the timer.
-         */
+       
         onSubmitAll: function () {
             var self = this;
             var view = this.getView();
@@ -645,6 +630,9 @@ sap.ui.define([
         onSubmit: async function () {
             var view = this.getView();
             var submitBtn = view.byId("submitBtn");
+            var oSession = this.getOwnerComponent().getModel("session");
+
+            this.updateCandidateLoginStatus(oSession.getProperty("/candidates_id"), false);
 
             if (!submitBtn.getEnabled()) { return; }
 
@@ -716,15 +704,6 @@ sap.ui.define([
 
                     self._renderTestResults(localTestResults, q);
 
-                    // if (view.byId("aiScoreTitle")) { view.byId("aiScoreTitle").setText(q.aiScore + " / 10"); }
-
-                    // if (view.byId("aiFeedbackText")) {
-                    //     view.byId("aiFeedbackText").setHtmlText("<div style='color: #666;'>Local test runs complete. Solution recorded.</div>");
-                    // }
-                    // var sugBox = view.byId("aiSuggestionsContainer");
-                    // if (sugBox) { sugBox.destroyItems(); }
-                    // if (oAiPanel) { oAiPanel.setVisible(true); }
-
                     self._updateDots();
 
                     var statusBadge = view.byId("statusBadge");
@@ -748,7 +727,6 @@ sap.ui.define([
                         return self.UpdateTestAttempt("submitted")
                             .then(function () {
                                 self._testSubmitted = true;
-
                                 sap.m.MessageBox.success(
                                     "Thank you for attending the interview! Our experts will evaluate your code and get back to you soon.",
                                     {

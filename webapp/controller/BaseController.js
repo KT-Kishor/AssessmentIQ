@@ -82,5 +82,26 @@ sap.ui.define([
         });
       });
     },
+
+    updateCandidateLoginStatus: function (candidateId, bStatus) {
+
+      var oPayload = {
+        filters: {
+          id: candidateId
+        },
+        data: {
+          isLoggedIn: bStatus
+        }
+      };
+
+      this.ajaxUpdateWithJQuery("Candidate", oPayload)
+        .then(function (response) {
+          console.log("Candidate login status updated.");
+        })
+        .catch(function () {
+          sap.m.MessageBox.error("Unable to update candidate.");
+        });
+    }
+
   })
 });

@@ -15,13 +15,13 @@ sap.ui.define([
         },
 
         _onRouteMatched: async function () {
-            const oSession = this.getOwnerComponent().getModel("session");
+            this.oSession = this.getOwnerComponent().getModel("session");
 
-            if (!oSession.getProperty("/candidateName")) {
+            if (!this.oSession.getProperty("/candidateName")) {
                 return this.getOwnerComponent().getRouter().navTo("login");
             }
 
-            const candidate_id = oSession.getProperty("/candidates_id");
+            const candidate_id = this.oSession.getProperty("/candidates_id");
 
             // Initializing default layout states
             this.getView().setModel(new JSONModel({
@@ -112,17 +112,18 @@ sap.ui.define([
         },
 
         onStartAptitude: function () {
+            this.updateCandidateLoginStatus(this.oSession.getProperty("/candidates_id"), true);
             this.getOwnerComponent().getRouter().navTo("start");
         },
 
         onStartProgramming: function () {
             var oPage = this.byId("homePage");
+            this.updateCandidateLoginStatus(this.oSession.getProperty("/candidates_id"), false);
+
             oPage.setBusy(true);
 
-            var oSession = this.getOwnerComponent().getModel("session");
-
             var oPayload = {
-                candidate_id: oSession.getProperty("/candidates_id"),
+                candidate_id: this.oSession.getProperty("/candidates_id"),
                 test_id: 2,
                 status: "in_progress"
             };
@@ -130,7 +131,7 @@ sap.ui.define([
             this.ajaxCreateWithJQuery("TestAttempt", {
                 data: oPayload
             }).then(function (response) {
-                oSession.setProperty("/attemptId", response?.data?.id || response?.data?.results?.insertId);
+                this.oSession.setProperty("/attemptId", response?.data?.id || response?.data?.results?.insertId);
                 oPage.setBusy(false);
                 this.getOwnerComponent().getRouter().navTo("view1");
             }.bind(this)).catch(function () {
