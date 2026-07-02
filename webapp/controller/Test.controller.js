@@ -21,7 +21,7 @@ sap.ui.define([
             this._testSubmitted = false;   // FIX 1: must be initialized here
             this._testDialogOpen = false;
 
-            this.oSession = this.oSession;
+            this.oSession = this.getOwnerComponent().getModel("session");
             if (!this.oSession.getProperty("/candidateName")) {
                 return this.getOwnerComponent().getRouter().navTo("login");
             }
@@ -53,12 +53,11 @@ sap.ui.define([
             if (this._oSubmitDialog) { this._oSubmitDialog.destroy(); }
             if (this._oTimeoutDialog) { this._oTimeoutDialog.destroy(); }
         },
-
         // ── Route Matched & Data Initialization ──────────────────────
         _onRouteMatched: function () {
             this._ensureMockDataInitialized();
 
-            var oSession = this.oSession;
+            var oSession = this.getOwnerComponent().getModel("session");
             if (!oSession.getProperty("/candidateName")) {
                 return this.getOwnerComponent().getRouter().navTo("login");
             }
