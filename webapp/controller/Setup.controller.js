@@ -1,9 +1,10 @@
 sap.ui.define([
     "./BaseController",
     "sap/m/MessageToast",
+    "sap/m/MessageBox",
     "../model/formatter",
     "sap/ui/model/json/JSONModel" // Explicitly importing JSONModel just in case
-], function (BaseController, MessageToast, Formatter, JSONModel) {
+], function (BaseController, MessageToast,MessageBox, Formatter, JSONModel) {
     "use strict";
 
     return BaseController.extend("sap.com.interview.controller.Setup", {
@@ -116,30 +117,247 @@ sap.ui.define([
             this.getOwnerComponent().getRouter().navTo("start");
         },
 
+        // onStartProgramming: function () {
+        //     var oPage = this.byId("homePage");
+        //     this.updateCandidateLoginStatus(this.oSession.getProperty("/candidates_id"), false);
+
+        //     oPage.setBusy(true);
+
+        //     var oPayload = {
+        //         candidate_id: this.oSession.getProperty("/candidates_id"),
+        //         test_id: 2,
+        //         status: "in_progress"
+        //     };
+
+        //     this.ajaxCreateWithJQuery("TestAttempt", {
+        //         data: oPayload
+        //     }).then(function (response) {
+        //         this.oSession.setProperty("/attemptId", response?.data?.id || response?.data?.results?.insertId);
+        //         oPage.setBusy(false);
+        //         this.getOwnerComponent().getRouter().navTo("view1");
+        //     }.bind(this)).catch(function () {
+        //         oPage.setBusy(false);
+        //         sap.m.MessageBox.error("Unable to start test.");
+        //     });
+
+        // },
+
+
+          // onStartProgramming: function () {
+        //     var oPage = this.byId("homePage");
+        //     oPage.setBusy(true);
+
+        //     var oSession = this.getOwnerComponent().getModel("session");
+
+        //     var oPayload = {
+        //         candidate_id: oSession.getProperty("/candidates_id"),
+        //         test_id: 2,
+        //         status: "in_progress"
+        //     };
+
+        //     this.ajaxCreateWithJQuery("TestAttempt", {
+        //         data: oPayload
+        //     }).then(function (response) {
+        //         oSession.setProperty("/attemptId", response?.data?.id || response?.data?.results?.insertId);
+        //         oPage.setBusy(false);
+        //         this.getOwnerComponent().getRouter().navTo("view1");
+        //     }.bind(this)).catch(function () {
+        //         oPage.setBusy(false);
+        //         sap.m.MessageBox.error("Unable to start test.");
+        //     });
+
+        // },
+
         onStartProgramming: function () {
-            var oPage = this.byId("homePage");
-            this.updateCandidateLoginStatus(this.oSession.getProperty("/candidates_id"), false);
+     this.updateCandidateLoginStatus(this.oSession.getProperty("/candidates_id"), true);
+//   const oSession = this.getOwnerComponent().getModel("session");
+    const sEmail = this.oSession.getProperty("/candidateEmail");
 
-            oPage.setBusy(true);
+    // Set the email for the fragment binding
+    this.oSession.setProperty("/email", sEmail);
 
-            var oPayload = {
-                candidate_id: this.oSession.getProperty("/candidates_id"),
-                test_id: 2,
-                status: "in_progress"
-            };
+    if (!this._otpDialog) {
 
-            this.ajaxCreateWithJQuery("TestAttempt", {
-                data: oPayload
-            }).then(function (response) {
-                this.oSession.setProperty("/attemptId", response?.data?.id || response?.data?.results?.insertId);
-                oPage.setBusy(false);
-                this.getOwnerComponent().getRouter().navTo("view1");
-            }.bind(this)).catch(function () {
-                oPage.setBusy(false);
-                sap.m.MessageBox.error("Unable to start test.");
-            });
+        sap.ui.core.Fragment.load({
+            id: this.getView().getId(),
+            name: "sap.com.interview.fragment.OTPlogin",
+            controller: this
+        }).then(function (oDialog) {
 
-        },
+            this._otpDialog = oDialog;
+            this.getView().addDependent(oDialog);
+            oDialog.open();
+
+        }.bind(this));
+
+    } else {
+        this._otpDialog.open();
+    }
+
+},
+
+onSendOTP: function () {
+     var oPage = this.byId("otpDialog");
+    var oEmailInput = this.byId("emailInput");
+    var sEmail = oEmailInput.getValue().trim();
+
+    var oButton = this.byId("btnSendOTP");
+       oPage.setBusy(true);
+    this.ajaxCreateWithJQuery("CandidateOTP", {
+        candidate_Email: sEmail,
+        action: "sendOTP"
+    }).then(function () {
+          oPage.setBusy(false);
+        MessageToast.show("OTP sent successfully.");
+        this.byId("otpContainer").setVisible(true);
+
+        // Start 30-second countdown
+        this._startOTPTimer(oButton);
+
+    }.bind(this)).catch(function () {
+         oPage.setBusy(false);
+        MessageBox.error("Failed to send OTP.");
+    });
+},
+_startOTPTimer: function (oButton) {
+
+    var iSeconds = 30;
+
+    oButton.setEnabled(false);
+    oButton.setText("Resend OTP (" + iSeconds + "s)");
+
+    // Clear previous timer if any
+    if (this._otpTimer) {
+        clearInterval(this._otpTimer);
+    }
+
+    this._otpTimer = setInterval(function () {
+
+        iSeconds--;
+
+        if (iSeconds > 0) {
+            oButton.setText("Resend OTP (" + iSeconds + "s)");
+        } else {
+            clearInterval(this._otpTimer);
+            this._otpTimer = null;
+
+            oButton.setEnabled(true);
+            oButton.setText("Resend OTP");
+        }
+
+    }.bind(this), 1000);
+},
+onVerifyOTP: function () {
+    var oPage = this.byId("otpDialog");
+    var sOTP = this.byId("otpInput").getValue();
+    if(!sOTP){
+        MessageToast.show("Enter a Valid OTP")
+    }
+    var sEmail = this.getView().getModel("session").getProperty("/email");
+        oPage.setBusy(true);
+    this.ajaxCreateWithJQuery("CandidateOTP", {
+        candidate_Email: sEmail,
+        OTP: sOTP,
+        action: "verifyOTP"
+    }).then(function (oResponse) {
+ oPage.setBusy(false);
+        // Display the response message
+        MessageToast.show(oResponse.message || "OTP verified successfully.");
+
+        if (oResponse.success) {
+            this._otpDialog.close();
+            this._createTestAttempt();
+        }
+
+    }.bind(this)).catch(function (oError) {
+ oPage.setBusy(false);
+        // Display backend error message
+        var sMessage = oError.responseJSON?.message ||
+                       oError.responseText ||
+                       oError.message ||
+                       "OTP verification failed.";
+
+        MessageBox.error(sMessage);
+
+    });
+},
+onOTPchange: function (oEvent) {
+
+    var oInput = oEvent.getSource();
+    var sValue = oInput.getValue();
+
+    // Allow only digits
+    sValue = sValue.replace(/\D/g, "");
+
+    // Restrict to 6 digits
+    if (sValue.length > 6) {
+        sValue = sValue.substring(0, 6);
+    }
+
+    oInput.setValue(sValue);
+},
+_createTestAttempt: function () {
+
+    var oPage = this.byId("homePage");
+    oPage.setBusy(true);
+
+    // var oSession = this.getOwnerComponent().getModel("session");
+
+    var oPayload = {
+        candidate_id: this.oSession.getProperty("/candidates_id"),
+        test_id: 2,
+        status: "in_progress"
+    };
+
+    this.ajaxCreateWithJQuery("TestAttempt", {
+        data: oPayload
+    }).then(function (response) {
+
+        this.oSession.setProperty(
+            "/attemptId",
+            response?.data?.id || response?.data?.results?.insertId
+        );
+
+        oPage.setBusy(false);
+
+        this.getOwnerComponent()
+            .getRouter()
+            .navTo("view1");
+
+    }.bind(this))
+    .catch(function () {
+
+        oPage.setBusy(false);
+        MessageBox.error("Unable to start test.");
+
+    });
+
+},
+PL_onCloseViewDialog: function () {
+
+     if (this._otpTimer) {
+        clearInterval(this._otpTimer);
+        this._otpTimer = null;
+    }
+
+    if (this.byId("otpInput")) {
+        this.byId("otpInput").setValue("");
+        this.byId("otpInput").setValueState(sap.ui.core.ValueState.None);
+    }
+
+    // Hide OTP section
+    if (this.byId("otpContainer")) {
+        this.byId("otpContainer").setVisible(false);
+    }
+
+    // Close and destroy dialog
+    if (this._otpDialog) {
+        this._otpDialog.close();
+        this._otpDialog.destroy();
+        this._otpDialog = null;
+    }
+},
+
 
         QuestionsReadCall: function (testId, modelName) {
             var oPage = this.byId("homePage");

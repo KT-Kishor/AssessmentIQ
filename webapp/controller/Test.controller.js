@@ -249,6 +249,20 @@ sap.ui.define([
             if (this.byId("btnPrev")) { this.byId("btnPrev").setEnabled(nIdx > 0); }
             if (this.byId("btnNext")) { this.byId("btnNext").setVisible(nIdx < nTotal - 1); }
         },
+          onUnansweredPress: function () {
+    var oSession = this.getOwnerComponent().getModel("session");
+    var aAnswers = oSession.getProperty("/answers") || [];
+
+    // Find first unanswered question
+    var iUnansweredIndex = aAnswers.findIndex(function (answer) {
+        return answer === null || answer === undefined;
+    });
+
+    if (iUnansweredIndex !== -1) {
+        oSession.setProperty("/currentQuestion", iUnansweredIndex);
+        this._renderQuestion();
+    }
+       },
 
         _renderDots: function (nCurrent, aAnswers, nTotal) {
             var oDotsHtml = this.byId("qDotsHtml");

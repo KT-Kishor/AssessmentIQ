@@ -68,11 +68,18 @@
         class="aiqBtnOutline"
         press="onPrevious"
         enabled="false"/>
+    <!-- <Button
+        id="btngotopage"
+        text="GoTo Page"
+        class="aiqBtnOutline"
+        press="onGoto"
+        /> -->
 
-    <Text
-        id="unansweredText"
-        text=""
-        class="aiqUnansweredText"/>
+   <Link
+    id="unansweredText"
+    text=""
+    press="onUnansweredPress"
+    class="aiqUnansweredText"/>
 
     <FlexBox
         class="aiqFooterRight"
