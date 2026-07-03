@@ -90,7 +90,8 @@ sap.ui.define([
           id: candidateId
         },
         data: {
-          isLoggedIn: bStatus
+          isLoggedIn: bStatus,
+          loginTime: new Date().toISOString()
         }
       };
 
