@@ -27,20 +27,20 @@ sap.ui.define([
             }
 
             // ── Security: disable right-click, copy, paste, keyboard shortcuts ──
-            // document.addEventListener("contextmenu", function (e) { e.preventDefault(); });
-            // document.addEventListener("copy", function (e) { e.preventDefault(); });
-            // document.addEventListener("cut", function (e) { e.preventDefault(); });
-            // document.addEventListener("paste", function (e) { e.preventDefault(); });
-            // document.addEventListener("keydown", function (e) {
-            //     if (e.ctrlKey && ["c", "C", "x", "X", "v", "V"].indexOf(e.key) !== -1) {
-            //         e.preventDefault();
-            //     }
-            // });
+            document.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+            document.addEventListener("copy", function (e) { e.preventDefault(); });
+            document.addEventListener("cut", function (e) { e.preventDefault(); });
+            document.addEventListener("paste", function (e) { e.preventDefault(); });
+            document.addEventListener("keydown", function (e) {
+                if (e.ctrlKey && ["c", "C", "x", "X", "v", "V"].indexOf(e.key) !== -1) {
+                    e.preventDefault();
+                }
+            });
 
             // // ── Security: detect tab switch / window blur / fullscreen exit ──
-            // document.addEventListener("fullscreenchange", this._onFullscreenChange.bind(this));
-            // document.addEventListener("visibilitychange", this._onVisibilityChange.bind(this));
-            // window.addEventListener("blur", this._onWindowBlur.bind(this));
+            document.addEventListener("fullscreenchange", this._onFullscreenChange.bind(this));
+            document.addEventListener("visibilitychange", this._onVisibilityChange.bind(this));
+            window.addEventListener("blur", this._onWindowBlur.bind(this));
 
             var oRouter = this.getOwnerComponent().getRouter();
             oRouter.getRoute("test").attachPatternMatched(this._onRouteMatched, this);
