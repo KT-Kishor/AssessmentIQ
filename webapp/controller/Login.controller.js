@@ -80,7 +80,8 @@ sap.ui.define([
                 candidate_Email: oSession.getProperty("/candidateEmail"),
                 flag: "start",
                 skill_level: oSession.getProperty("/skill_level"),
-                preferred_language: oSession.getProperty("/preferred_language")
+                preferred_language: oSession.getProperty("/preferred_language"),
+                Status:"New"
             };
             var oPage = this.byId("loginPage");
             oPage.setBusy(true);
