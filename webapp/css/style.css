@@ -64,6 +64,9 @@
     border-radius: 16px;
     box-shadow: 0 4px 14px rgba(30, 111, 217, 0.25);
 }
+.logoimage{
+    border-radius: 12px;
+}
 
 .aiqAppTitle {
     font-size: 26px !important;

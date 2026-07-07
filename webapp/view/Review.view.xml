@@ -11,17 +11,21 @@
         class="aiqTestPage">
 
         <customHeader>
-            <Bar class="aiqTimerHeader">
-                <contentLeft>
-                    <core:HTML content="&lt;div class='aiqHeaderBrand'&gt;&lt;span class='aiqHeaderDot'&gt;&lt;/span&gt; Kalpavriksha AssessIQ&lt;/div&gt;"/>
-                </contentLeft>
-                <contentMiddle>
+            <!-- <Bar class="aiqTimerHeader"> -->
+              <OverflowToolbar class="aiqTimerHeader">
+               <HBox alignItems="Center">
+                <Image src="images/logo.jpg" width="32px" height="32px" class="sapUiTinyMarginEnd logoimage"/>
+                    <Text text="Kalpavriksha AssessIQ" class="aiqHeaderBrand"/>
+               </HBox>
+                <ToolbarSpacer/>
+               
                     <Title text="Review Answers" class="aiqReviewMainTitle"/>
-                </contentMiddle>
-                <contentRight>
+               
+                <ToolbarSpacer/>
                     <Button text="← Back to Results" class="aiqBtnOutline" press="onBackToResults"/>
-                </contentRight>
-            </Bar>
+               
+            <!-- </Bar> -->
+            </OverflowToolbar>
         </customHeader>
 
         <ScrollContainer height="100%" horizontal="false" vertical="true" class="aiqTestScrollContainer">
