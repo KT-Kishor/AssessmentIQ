@@ -14,7 +14,7 @@
             <!-- <Bar class="aiqTimerHeader"> -->
               <OverflowToolbar class="aiqTimerHeader">
                <HBox alignItems="Center">
-                <Image src="images/logo.jpg" width="32px" height="32px" class="sapUiTinyMarginEnd logoimage"/>
+                <Image src="Images/logo.jpg" width="32px" height="32px" class="sapUiTinyMarginEnd logoimage"/>
                     <Text text="Kalpavriksha AssessIQ" class="aiqHeaderBrand"/>
                </HBox>
                 <ToolbarSpacer/>
