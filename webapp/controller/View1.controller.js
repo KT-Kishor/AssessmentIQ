@@ -627,7 +627,7 @@ sap.ui.define([
         // ─────────────────────────────────────────────────
         //  SUBMIT (HANDLES MULTIPLE QUESTIONS CORRECTLY)
         // ─────────────────────────────────────────────────
-        onSubmit: async function () {
+       onSubmit: async function () {
             var view = this.getView();
             var submitBtn = view.byId("submitBtn");
             var oSession = this.getOwnerComponent().getModel("session");
@@ -636,10 +636,11 @@ sap.ui.define([
 
             if (!submitBtn.getEnabled()) { return; }
 
-            submitBtn.setText("⏳ Evaluating...");
+            submitBtn.setText("⏳ Saving...");
             submitBtn.setEnabled(false);
 
-            var idx = this._state.getProperty("/currentIndex");
+            // Normalize index to a number to prevent type evaluation issues
+            var idx = Number(this._state.getProperty("/currentIndex"));
             var q = this._questions ? this._questions[idx] : null;
 
             if (!q || Object.keys(q).length === 0) {
@@ -660,70 +661,47 @@ sap.ui.define([
                 return;
             }
 
-            var localTestResults = [];
-            var allLocalTestsPassed = true;
-
-            try {
-                localTestResults = await this._simulateTestResults(q);
-                allLocalTestsPassed = localTestResults.every(function (r) { return r.pass; });
-            } catch (e) {
-                allLocalTestsPassed = false;
-            }
-
-            if (!allLocalTestsPassed && lang === "JavaScript") {
-                view.byId("outputPlaceholder").setVisible(false);
-                view.byId("runningIndicator").setVisible(false);
-                this._renderTestResults(localTestResults, q);
-
-                sap.m.MessageToast.show("Code fails local validation tests. Fix errors before submitting!");
-                submitBtn.setText("✓ Submit");
-                submitBtn.setEnabled(true);
-                return;
-            }
-
+            // Hide any previous leftovers, show saving indicator
             view.byId("outputPlaceholder").setVisible(false);
             view.byId("runningIndicator").setVisible(true);
             view.byId("testResultsContainer").setVisible(false);
-            // view.byId("testSummary").setVisible(false);
-
-            // var oAiPanel = view.byId("aiFeedbackPanel");
-            // if (oAiPanel) { oAiPanel.setVisible(false); }
 
             var self = this;
+            var isTestFullySubmitted = false; // Track closure state across then blocks
 
             Promise.resolve()
                 .then(function () {
                     view.byId("runningIndicator").setVisible(false);
 
-                    var totalTests = localTestResults.length || 1;
-                    var passedCount = localTestResults.filter(function (r) { return r.pass; }).length;
-                    var calculatedScore = Math.round((passedCount / totalTests) * 10);
-
+                    // Since we are no longer running test cases, we flag status directly
                     q.status = "Submitted";
-                    q.aiScore = calculatedScore;
-
-                    self._renderTestResults(localTestResults, q);
+                    q.aiScore = 10; // Defaulting score baseline or manage as per your backend requirements
 
                     self._updateDots();
 
                     var statusBadge = view.byId("statusBadge");
                     if (statusBadge) {
                         statusBadge.setText("Submitted");
-                        statusBadge.setState(q.aiScore >= 4 ? "Success" : "Error");
+                        statusBadge.setState("Success");
                     }
 
                     self._updateProgress();
 
-                    // Step 1: Save the answer for this single question to the DB first
+                    // Step 1: Direct Save the answer for this single question to the DB
                     return self.saveCurrentCandidateAnswer(q, code);
                 })
                 .then(function () {
-                    // ─── CHECK IF THIS IS THE LAST QUESTION ───
+                    // ─── CHECK IF ALL QUESTIONS ARE SUBMITTED ───
                     var iTotalQuestions = self._questions ? self._questions.length : 0;
-                    var isLastQuestion = (idx === iTotalQuestions - 1);
 
-                    if (isLastQuestion) {
-                        // If it's the final question, lock the entire TestAttempt as "submitted"
+                    // Check if every single question in the assessment list has been marked as submitted
+                    var areAllQuestionsSubmitted = self._questions && self._questions.every(function (question) {
+                        return question.status === "Submitted";
+                    });
+
+                    // The test is complete if all questions are finished
+                    if (areAllQuestionsSubmitted) {
+                        isTestFullySubmitted = true;
                         return self.UpdateTestAttempt("submitted")
                             .then(function () {
                                 self._testSubmitted = true;
@@ -734,14 +712,13 @@ sap.ui.define([
                                         actions: [sap.m.MessageBox.Action.OK],
                                         onClose: function (oAction) {
                                             self.getOwnerComponent().getRouter().navTo("setup");
-                                            // Optional: Redirect candidate back to summary portal dashboard
                                         }
                                     }
                                 );
                             });
                     } else {
-                        // If there are more questions remaining, just show a success toast and don't close the test
-                        sap.m.MessageToast.show("Solution for Question " + (idx + 1) + " saved successfully! Proceed to the next question.");
+                        // If there are uncompleted questions elsewhere in the list
+                        sap.m.MessageToast.show("Solution for Question " + (idx + 1) + " saved successfully! Please complete all remaining questions.");
                         return Promise.resolve();
                     }
                 })
@@ -749,12 +726,10 @@ sap.ui.define([
                     view.byId("runningIndicator").setVisible(false);
                     var sErrorMsg = err.message || err.responseText || "An unexpected database issue occurred.";
                     sap.m.MessageToast.show("Submission failed: " + sErrorMsg);
-                    // console.error(err);
                 })
                 .then(function () {
-                    // Toggle buttons elegantly based on whether it was the final submission or not
-                    var iTotalQuestions = self._questions ? self._questions.length : 0;
-                    if (idx === iTotalQuestions - 1) {
+                    // Toggle buttons elegantly based on whether the final submission went through
+                    if (isTestFullySubmitted) {
                         submitBtn.setText("✓ Submitted");
                         submitBtn.setEnabled(false);
                     } else {
