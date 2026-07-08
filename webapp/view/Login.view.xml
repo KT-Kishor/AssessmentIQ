@@ -24,7 +24,7 @@
 
                         <VBox class="sapUiSmallMarginBottom">
                             <Label text="Student ID" labelFor="inpStudentId" class="sapUiTinyMarginBottom" design="Bold" required="true"/>
-                            <Input id="inpStudentId" maxLength="20" laceholder="e.g. STU10294" class="aiqInput" width="100%" liveChange="onStudentIdChange" submit="onStartPressed" value="{session>/studentId}"/>
+                            <Input id="inpStudentId" maxLength="20" placeholder="e.g. STU10294" class="aiqInput" width="100%" liveChange="onStudentIdChange" submit="onStartPressed" value="{session>/studentId}"/>
                         </VBox>
 
                         <VBox class="sapUiSmallMarginBottom">

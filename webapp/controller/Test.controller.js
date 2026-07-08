@@ -56,6 +56,9 @@ sap.ui.define([
         // ── Route Matched & Data Initialization ──────────────────────
         _onRouteMatched: function () {
             this._ensureMockDataInitialized();
+            this._testSubmitted = false;
+            this._testDialogOpen = false;
+            this._violationCount = 0;
 
             var oSession = this.getOwnerComponent().getModel("session");
             if (!oSession.getProperty("/candidateName")) {
@@ -249,20 +252,20 @@ sap.ui.define([
             if (this.byId("btnPrev")) { this.byId("btnPrev").setEnabled(nIdx > 0); }
             if (this.byId("btnNext")) { this.byId("btnNext").setVisible(nIdx < nTotal - 1); }
         },
-          onUnansweredPress: function () {
-    var oSession = this.getOwnerComponent().getModel("session");
-    var aAnswers = oSession.getProperty("/answers") || [];
+        onUnansweredPress: function () {
+            var oSession = this.getOwnerComponent().getModel("session");
+            var aAnswers = oSession.getProperty("/answers") || [];
 
-    // Find first unanswered question
-    var iUnansweredIndex = aAnswers.findIndex(function (answer) {
-        return answer === null || answer === undefined;
-    });
+            // Find first unanswered question
+            var iUnansweredIndex = aAnswers.findIndex(function (answer) {
+                return answer === null || answer === undefined;
+            });
 
-    if (iUnansweredIndex !== -1) {
-        oSession.setProperty("/currentQuestion", iUnansweredIndex);
-        this._renderQuestion();
-    }
-       },
+            if (iUnansweredIndex !== -1) {
+                oSession.setProperty("/currentQuestion", iUnansweredIndex);
+                this._renderQuestion();
+            }
+        },
 
         _renderDots: function (nCurrent, aAnswers, nTotal) {
             var oDotsHtml = this.byId("qDotsHtml");
@@ -599,10 +602,21 @@ sap.ui.define([
         _autoSubmitTest: function (sMessage) {
             if (this._testDialogOpen) { return; }
 
+            // FIX 13: track how many times the violation popup has appeared
+            this._violationCount = (this._violationCount || 0) + 1;
+
+            // FIX 14: on 3rd (or later) violation, auto-submit directly, no dialog
+            if (this._violationCount >= 3) {
+                this._testSubmitted = true;
+                MessageToast.show("Multiple violations detected. Test auto-submitted.");
+                this._doSubmit("submitted");
+                return;
+            }
+
             this._testDialogOpen = true;
 
             MessageBox.show(
-                sMessage + "\n\nDo you want to submit the test?",
+                sMessage + "\n\nDo you want to submit the test? (Warning " + this._violationCount + " of 3)",
                 {
                     icon: MessageBox.Icon.WARNING,
                     title: "Warning",

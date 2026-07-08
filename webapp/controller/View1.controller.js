@@ -32,20 +32,36 @@ sap.ui.define([
             this._testSubmitted = false;
             this._testDialogOpen = false;
 
-            // ── Security: disable right-click, copy, paste, dev shortcuts ──
-            document.addEventListener("contextmenu", function (e) { e.preventDefault(); });
-            document.addEventListener("copy", function (e) { e.preventDefault(); });
-            document.addEventListener("cut", function (e) { e.preventDefault(); });
-            document.addEventListener("paste", function (e) { e.preventDefault(); });
-            document.addEventListener("keydown", function (e) {
-                if (e.ctrlKey && ["c", "C", "x", "X", "v", "V"].indexOf(e.key) !== -1) {
-                    e.preventDefault();
+            // ── Violation tracking: after 3 warning popups, auto-submit without asking ──
+            this._violationCount = 0;
+            this._maxViolations = 3;
+
+            // ── Security: disable right-click, copy, paste, dev shortcuts, back nav ──
+            this._boundContextMenu = function (e) { e.preventDefault(); };
+            this._boundCopyCutPaste = function (e) {
+                // Allow paste/copy/cut inside the code editor itself
+                var oEditor = this.getView().byId("codeEditor");
+                var oEditorDom = oEditor && oEditor.getDomRef ? oEditor.getDomRef() : null;
+                if (oEditorDom && e.target && oEditorDom.contains(e.target)) {
+                    return;
                 }
-                // F11 toggles fullscreen manually
-                if (e.key === "F11") {
-                    e.preventDefault();
-                }
-            });
+                e.preventDefault();
+            }.bind(this);
+            this._boundKeyDown = this._onSecurityKeyDown.bind(this);
+            this._boundBeforeUnload = this._onBeforeUnload.bind(this);
+            this._boundPopState = this._onPopState.bind(this);
+
+            document.addEventListener("contextmenu", this._boundContextMenu);
+            document.addEventListener("copy", this._boundCopyCutPaste);
+            document.addEventListener("cut", this._boundCopyCutPaste);
+            document.addEventListener("paste", this._boundCopyCutPaste);
+            document.addEventListener("keydown", this._boundKeyDown);
+            window.addEventListener("beforeunload", this._boundBeforeUnload);
+
+            // Trap the Back button: push a dummy history state so popstate
+            // keeps firing instead of actually navigating away
+            history.pushState(null, "", location.href);
+            window.addEventListener("popstate", this._boundPopState);
 
             this._boundFullscreenChange = this._onFullscreenChange.bind(this);
             this._boundVisibilityChange = this._onVisibilityChange.bind(this);
@@ -67,6 +83,7 @@ sap.ui.define([
                 // Reset flags on every fresh route match
                 self._testSubmitted = false;
                 self._testDialogOpen = false;
+                self._violationCount = 0;
 
                 // 1. Fetch raw payload from 'oProgrammingModel'
                 var oViewModel = self.getView().getModel("oProgrammingModel");
@@ -137,6 +154,14 @@ sap.ui.define([
             document.removeEventListener("webkitfullscreenchange", this._boundFullscreenChange);
             document.removeEventListener("visibilitychange", this._boundVisibilityChange);
             window.removeEventListener("blur", this._boundWindowBlur);
+
+            document.removeEventListener("contextmenu", this._boundContextMenu);
+            document.removeEventListener("copy", this._boundCopyCutPaste);
+            document.removeEventListener("cut", this._boundCopyCutPaste);
+            document.removeEventListener("paste", this._boundCopyCutPaste);
+            document.removeEventListener("keydown", this._boundKeyDown);
+            window.removeEventListener("beforeunload", this._boundBeforeUnload);
+            window.removeEventListener("popstate", this._boundPopState);
         },
 
         /** Request fullscreen across all browser vendors */
@@ -196,17 +221,78 @@ sap.ui.define([
         },
 
         /**
+         * Blocks copy/cut/paste/select-all shortcuts, devtools shortcuts,
+         * view-source, and manual F11 fullscreen toggling during the test.
+         * Paste inside the code editor is handled separately (see
+         * _boundCopyCutPaste in onInit) and is not affected by this.
+         */
+        _onSecurityKeyDown: function (e) {
+            var key = e.key ? e.key.toLowerCase() : "";
+
+            // Block copy / cut / paste / select-all
+            if (e.ctrlKey && ["c", "x", "v", "a"].indexOf(key) !== -1) {
+                e.preventDefault();
+                return;
+            }
+
+            // Block common devtools shortcuts
+            if (key === "f12") { e.preventDefault(); return; }
+            if (e.ctrlKey && e.shiftKey && ["i", "j", "c"].indexOf(key) !== -1) { e.preventDefault(); return; }
+            if (e.ctrlKey && key === "u") { e.preventDefault(); return; } // view-source
+
+            // Block manual fullscreen exit via F11 — let the controller own fullscreen state
+            if (key === "f11") { e.preventDefault(); return; }
+        },
+
+        /** Native "leave site?" confirmation if the candidate tries to close/refresh mid-test */
+        _onBeforeUnload: function (e) {
+            if (this._testSubmitted) { return; }
+            e.preventDefault();
+            e.returnValue = ""; // required for Chrome to show the native prompt
+        },
+
+        /** Cancels browser Back navigation while the test is in progress */
+        _onPopState: function () {
+            if (this._testSubmitted) { return; }
+            history.pushState(null, "", location.href); // immediately cancel the back-navigation
+            sap.m.MessageToast.show("Navigation is disabled during the assessment.");
+        },
+
+        /**
          * Warns the user and optionally force-submits.
          * If the user clicks No → re-enter fullscreen.
+         *
+         * Also counts violations (fullscreen exit / tab switch / minimize /
+         * blur). Once the count hits _maxViolations, the test is
+         * auto-submitted immediately — no Yes/No dialog, no way to continue.
          */
         _autoSubmitTest: function (sMessage) {
-            if (this._testDialogOpen) { return; }
+            if (this._testDialogOpen || this._testSubmitted) { return; }
 
+            this._violationCount++;
+
+            // ── Limit reached: force-submit immediately, no prompt ──
+            if (this._violationCount >= this._maxViolations) {
+                this._testDialogOpen = true;
+                this._testSubmitted = true;
+                this._exitFullscreen();
+
+                sap.m.MessageToast.show("You exceeded the maximum number of warnings (" + this._maxViolations + "). Your assessment has been submitted automatically.");
+
+                this._testDialogOpen = false;
+                this.onSubmitAll();
+                return;
+            }
+
+            // ── Under the limit: show the normal Yes/No warning ──
             this._testDialogOpen = true;
             var self = this;
+            var iRemaining = this._maxViolations - this._violationCount;
 
             MessageBox.show(
-                sMessage + "\n\nDo you want to submit the test now?",
+                sMessage + "\n\nWarning " + this._violationCount + " of " + this._maxViolations +
+                ". " + iRemaining + " more will auto-submit your test." +
+                "\n\nDo you want to submit the test now?",
                 {
                     icon: MessageBox.Icon.WARNING,
                     title: "Warning",
@@ -231,11 +317,11 @@ sap.ui.define([
             );
         },
 
-       
+
         onSubmitAll: function () {
             var self = this;
             var view = this.getView();
-
+            var oSession = this.getOwnerComponent().getModel("session");
             if (this._timerInterval) {
                 clearInterval(this._timerInterval);
                 this._timerInterval = null;
@@ -256,9 +342,7 @@ sap.ui.define([
             if (q && q.status !== "Submitted" && code) {
                 q.status = q.aiScore ? q.status : "Submitted";
                 pSaveCurrent = this.saveCurrentCandidateAnswer(q, code).catch(function (err) {
-                    // Don't block finalisation if this single save fails —
-                    // log it, the TestAttempt-level submit below still proceeds.
-                    // console.error("Failed to save final in-progress answer:", err);
+
                 });
             }
 
@@ -273,7 +357,20 @@ sap.ui.define([
                         "Your assessment has been submitted. Thank you for attending the interview! Our experts will evaluate your code and get back to you soon.",
                         {
                             title: "Assessment Submitted Successfully",
-                            actions: [sap.m.MessageBox.Action.OK]
+                            actions: [sap.m.MessageBox.Action.OK],
+                            onClose: async function (oAction) {
+                                if (oAction === sap.m.MessageBox.Action.OK) {
+                                    try {
+                                        await self.updateCandidateLoginStatus(oSession.getProperty("/candidates_id"), false);
+
+                                        self._exitFullscreen();
+                                        self.getOwnerComponent().getRouter().navTo("setup");
+                                    } catch (err) {
+                                        sap.m.MessageToast.show("Failed to update login status.");
+                                        console.error(err);
+                                    }
+                                }
+                            }
                         }
                     );
                 })
@@ -627,13 +724,10 @@ sap.ui.define([
         // ─────────────────────────────────────────────────
         //  SUBMIT (HANDLES MULTIPLE QUESTIONS CORRECTLY)
         // ─────────────────────────────────────────────────
-       onSubmit: async function () {
+        onSubmit: async function () {
             var view = this.getView();
             var submitBtn = view.byId("submitBtn");
             var oSession = this.getOwnerComponent().getModel("session");
-
-            this.updateCandidateLoginStatus(oSession.getProperty("/candidates_id"), false);
-
             if (!submitBtn.getEnabled()) { return; }
 
             submitBtn.setText("⏳ Saving...");
@@ -710,8 +804,21 @@ sap.ui.define([
                                     {
                                         title: "Assessment Submitted Successfully",
                                         actions: [sap.m.MessageBox.Action.OK],
-                                        onClose: function (oAction) {
-                                            self.getOwnerComponent().getRouter().navTo("setup");
+                                        onClose: async function (oAction) {
+                                            if (oAction === sap.m.MessageBox.Action.OK) {
+                                                try {
+                                                    await self.updateCandidateLoginStatus(
+                                                        oSession.getProperty("/candidates_id"),
+                                                        false
+                                                    );
+
+                                                    self._exitFullscreen();
+                                                    self.getOwnerComponent().getRouter().navTo("setup");
+                                                } catch (err) {
+                                                    sap.m.MessageToast.show("Failed to update login status.");
+                                                    console.error(err);
+                                                }
+                                            }
                                         }
                                     }
                                 );
