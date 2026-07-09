@@ -58,8 +58,6 @@ sap.ui.define([
             document.addEventListener("keydown", this._boundKeyDown);
             window.addEventListener("beforeunload", this._boundBeforeUnload);
 
-            // Trap the Back button: push a dummy history state so popstate
-            // keeps firing instead of actually navigating away
             history.pushState(null, "", location.href);
             window.addEventListener("popstate", this._boundPopState);
 
@@ -486,11 +484,6 @@ sap.ui.define([
 
             this._resetOutput();
             this._updateDots();
-
-            // 8. Check if this question was already submitted (CandidateAnswers lookup)
-            // Guarded against race conditions: if the candidate navigates away
-            // before this resolves, the result is discarded instead of being
-            // applied to whatever question is now on screen.
             this._checkIfAnswerExists(q, index);
         },
 
@@ -510,10 +503,6 @@ sap.ui.define([
             try {
                 var aResults = await this.ajaxReadWithJQuery("CandidateAnswers", { attempt_id: attemptId, question_id: oQuestion.id });
 
-                // ── Stale-response guard ──
-                // If the candidate has moved to a different question while this
-                // request was in flight, drop the result instead of mutating the
-                // currently-displayed question's button/badge state.
                 if (this._state.getProperty("/currentIndex") !== nRequestedIndex) {
                     return false;
                 }
@@ -528,6 +517,9 @@ sap.ui.define([
                     oQuestion.status = "Submitted";
                     oQuestion.aiScore = oExisting.ai_score || oExisting.marks_awarded || 0;
 
+                    // FIX: remember that this question already has a DB row,
+                    // so the next save is treated as a RESUBMIT (update), not a fresh submit (create)
+                    oQuestion._answerRecordId = oExisting.id || true;
                     // Lock the Submit button — already answered
                     if (submitBtn) {
                         submitBtn.setText("✓ Submitted");
@@ -891,7 +883,23 @@ sap.ui.define([
                 code_status: oQuestion.status || "Submitted"
             };
 
-            return this.ajaxCreateWithJQuery("CandidateAnswers", { data: oPayload });
+            // FIX: if this question already has a saved answer row, this is a RESUBMIT → update it.
+            // Otherwise it's the first SUBMIT → create a new row.
+            if (oQuestion._answerRecordId) {
+                return this.ajaxUpdateWithJQuery("CandidateAnswers", {
+                    filters: { attempt_id: attemptId, question_id: oQuestion.id },
+                    data: oPayload
+                });
+            }
+
+            return this.ajaxCreateWithJQuery("CandidateAnswers", { data: oPayload })
+                .then(function (response) {
+                    var oCreated = response && response.data
+                        ? (Array.isArray(response.data) ? response.data[0] : response.data)
+                        : response;
+                    oQuestion._answerRecordId = (oCreated && oCreated.id) || true;
+                    return response;
+                });
         },
 
         // ─────────────────────────────────────────────────
